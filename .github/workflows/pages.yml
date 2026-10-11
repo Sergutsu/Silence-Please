@@ -1,0 +1,36 @@
+name: Publish the White Hart
+
+on:
+  push:
+    branches:
+      - main
+      - arena/18deebe0-silence-please
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the pub
+        uses: actions/checkout@v4
+      - name: Prepare GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload the static game
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Publish the White Hart
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142019">
+  <meta name="description" content="Run the White Hart. Keep the peace. Mind the Fenton Silencer.">
+  <title>The White Hart — Silence, Please</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./vendor/pixi.min.js"></script>
+  <script defer src="./game.js"></script>
+</head>
+<body>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="masthead">
+      <div class="brand-block">
+        <div class="pub-crest" aria-hidden="true"><span>W</span><i>H</i></div>
+        <div class="brand-copy">
+          <p class="eyebrow">A PUBLIC HOUSE OF QUESTIONABLE PHYSICS</p>
+          <h1>The White Hart</h1>
+          <p class="brand-subtitle">Fleet Street, London <span class="brand-dot">·</span> Est. whenever the landlord says</p>
+        </div>
+      </div>
+      <div class="night-block" aria-live="polite">
+        <div class="night-topline"><span class="live-dot"></span><span id="open-status">OPEN FOR THE EVENING</span><span class="night-season" id="season-label">AUTUMN</span></div>
+        <div class="night-title"><span id="night-label">WEDNESDAY</span><strong id="night-count">01</strong><span class="night-divider">/</span><span class="night-goal">10 WEDNESDAYS</span></div>
+        <div class="night-track"><span id="night-progress"></span></div>
+        <div class="night-foot"><span id="clock-label">7:00 PM</span><span id="streak-label">0 survived in a row</span></div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button" id="sound-button" type="button" aria-label="Turn sound on" title="Sound on / off"><span id="sound-icon">◖</span><span class="action-caption">SOUND</span></button>
+        <button class="icon-button" id="pause-button" type="button" aria-label="Pause game" title="Pause / resume"><span id="pause-icon">Ⅱ</span><span class="action-caption">PAUSE</span></button>
+        <button class="icon-button" id="help-button" type="button" aria-label="How to play" title="How to play"><span>?</span><span class="action-caption">HELP</span></button>
+        <button class="icon-button restart-button" id="restart-button" type="button" aria-label="Start a new game" title="Start a new game"><span>↻</span><span class="action-caption">NEW</span></button>
+      </div>
+    </header>
+
+    <section class="resource-bar" aria-label="Pub resources">
+      <div class="resource-cell resource-pints"><span class="resource-icon" aria-hidden="true">🍺</span><div><span class="resource-name">PINTS</span><strong id="res-pints">125</strong></div><span class="resource-rate" id="rate-pints">+1 / sec</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">📰</span><div><span class="resource-name">SCOOPS</span><strong id="res-scoops">4</strong></div><span class="resource-rate" id="rate-scoops">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">📜</span><div><span class="resource-name">MANUSCRIPTS</span><strong id="res-manuscripts">3</strong></div><span class="resource-rate" id="rate-manuscripts">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">⚗️</span><div><span class="resource-name">RESEARCH</span><strong id="res-research">45</strong></div><span class="resource-rate" id="rate-research">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">♥</span><div><span class="resource-name">LOYALTY</span><strong id="res-loyalty">12</strong></div><span class="resource-rate" id="rate-loyalty">—</span></div>
+      <div class="resource-cell resource-se"><span class="resource-icon" aria-hidden="true">🔇</span><div><span class="resource-name">SILENCE ENERGY</span><strong id="res-energy-top">18</strong></div><span class="resource-rate" id="rate-energy-top">+0.0 / sec</span></div>
+    </section>
+
+    <main class="game-layout">
+      <section class="pub-panel panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">WEDNESDAY SERVICE <span class="heading-rule"></span></p>
+            <h2>The pub is almost peaceful.</h2>
+          </div>
+          <div class="door-status"><span class="door-light"></span><span id="door-status">DOOR OPEN</span></div>
+        </div>
+        <div class="stage-frame" id="stage-frame">
+          <div class="stage-topline"><span>THE WHITE HART</span><span>FLEET STREET <i>✦</i> LONDON</span></div>
+          <div class="stage-inner" id="stage-inner">
+            <canvas id="pub-canvas" aria-label="Interactive illustrated pub. Tap a patron to serve them, or tap a room to toggle its silencer zone."></canvas>
+            <div class="stage-loading" id="stage-loading"><span class="loading-mark">W H</span><span>Polishing the brass…</span></div>
+          </div>
+          <div class="stage-bottomline"><span>THE ROOM WHERE EVERYBODY KNOWS YOUR BUSINESS</span><span id="scene-note">THE SILENCER IS LISTENING</span></div>
+        </div>
+        <div class="room-navigation">
+          <button class="nav-arrow" id="room-prev" type="button" aria-label="Previous rooms">‹</button>
+          <div class="room-page-list" id="room-tabs" aria-label="Room pages"></div>
+          <button class="nav-arrow" id="room-next" type="button" aria-label="Next rooms">›</button>
+          <span class="swipe-hint">SWIPE TO WANDER</span>
+        </div>
+        <div class="scene-caption"><span class="caption-seal">✦</span><span id="scene-caption">Three regulars have arrived. One of them has brought a notebook and an opinion.</span></div>
+      </section>
+
+      <aside class="management-column" aria-label="Pub management">
+        <section class="meter-card panel" id="energy-card" aria-live="polite">
+          <div class="meter-head">
+            <div><p class="eyebrow">THE FENTON SILENCER</p><h2>Silence energy</h2></div>
+            <div class="meter-percentage" id="energy-percent">18<span>%</span></div>
+          </div>
+          <div class="energy-numbers"><strong><span id="energy-readout">18</span><span class="slash"> / </span><span id="energy-capacity">100</span><small> SE</small></strong><span class="energy-flow" id="energy-flow">+0.0 / sec</span></div>
+          <div class="energy-track" role="progressbar" aria-label="Silence Energy capacity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18"><span id="energy-fill"></span><i class="energy-glint"></i></div>
+          <div class="energy-warning" id="energy-status"><span class="warning-icon">✦</span><span>Comfortably below catastrophe.</span></div>
+          <div class="meter-foot"><span>CAPACITY <b id="meter-tier-cap">100 SE</b></span><span>ZONE INTAKE <b id="active-zones">1 ACTIVE</b></span></div>
+        </section>
+
+        <section class="silencer-card panel">
+          <div class="card-heading-row">
+            <div><p class="eyebrow">CURRENT APPARATUS</p><h3 id="silencer-name">The Prototype</h3></div>
+            <div class="tier-seal" id="silencer-tier">TIER I</div>
+          </div>
+          <div class="apparatus-illustration" aria-hidden="true">
+            <div class="machine-base"></div><div class="machine-pipe pipe-one"></div><div class="machine-pipe pipe-two"></div><div class="machine-pipe pipe-three"></div><div class="machine-gauge"><i></i></div><div class="machine-glow" id="machine-glow"></div>
+            <span class="machine-label">FENTON &amp; CO.</span>
+          </div>
+          <div class="apparatus-stats">
+            <div><span>ABSORPTION</span><strong id="absorption-value">5 <small>dB / sec</small></strong></div>
+            <div><span>VENT RATE</span><strong id="vent-rate-value">0 <small>SE / sec</small></strong></div>
+          </div>
+          <div class="home-room"><span class="home-pin">⌖</span><span>HOUSING <b id="home-room">GENERAL BAR</b></span></div>
+          <div class="machine-controls">
+            <button class="button button-secondary" id="vent-button" type="button"><span>↧</span><span id="vent-button-label">VENT</span></button>
+            <button class="button button-primary" id="upgrade-button" type="button">IMPROVE SILENCER <span>→</span></button>
+          </div>
+        </section>
+
+        <section class="serve-card panel">
+          <div class="serve-top"><div><p class="eyebrow">THE BEER TAP</p><h3 id="serve-title">An honest pint.</h3></div><div class="tap-icon" aria-hidden="true">◉</div></div>
+          <p id="serve-detail">Tap a patron in the room, pour their beer, then tap them once more. The method is older than the pub.</p>
+          <button class="button button-tap" id="serve-button" type="button" disabled><span class="tap-handle"><i></i></span><span id="serve-button-label">SELECT A PATRON</span><span class="tap-arrow">→</span></button>
+          <button class="serve-cancel" id="serve-cancel" type="button" hidden>Never mind</button>
+        </section>
+
+        <section class="standing-card panel">
+          <div class="standing-top"><div><p class="eyebrow">THE NEIGHBOURHOOD</p><h3>Reputation</h3></div><strong id="reputation-value">100</strong></div>
+          <div class="reputation-track"><span id="reputation-fill"></span></div>
+          <div class="standing-foot"><span id="standing-copy">Beloved, if occasionally loud.</span><span><b id="explosion-count">0</b> / 3 BOOMS</span></div>
+        </section>
+
+        <section class="press-card panel" aria-live="polite">
+          <div class="press-topline"><span class="press-stamp">THE<br>HART</span><div><p class="eyebrow" id="press-tag">LATEST EDITION · WEDNESDAY</p><h3 id="press-headline">“Regulars insist the pub is perfectly normal.”</h3></div></div>
+          <p id="press-copy">The Fenton apparatus has been switched on. Nobody is quite sure by whom.</p>
+          <button class="text-button" id="journal-button" type="button">OPEN THE SCRAPBOOK <span>↗</span></button>
+        </section>
+      </aside>
+    </main>
+
+    <section class="action-dock" aria-label="Management actions">
+      <div class="dock-intro"><span class="dock-star">✦</span><div><b>LANDLORD'S DESK</b><small>Decisions are best made before the ticking starts.</small></div></div>
+      <div class="dock-actions">
+        <button class="dock-button vent-dock" id="dock-vent-button" type="button"><span class="dock-icon">↧</span><span><b>VENT</b><small id="dock-vent-copy">Bleed off safely</small></span></button>
+        <button class="dock-button" id="shop-button" type="button"><span class="dock-icon">⚒</span><span><b>UPGRADES</b><small>Rooms &amp; apparatus</small></span></button>
+        <button class="dock-button" id="staff-button" type="button"><span class="dock-icon">♙</span><span><b>STAFF</b><small>Hire a helpful person</small></span></button>
+        <button class="dock-button" id="amenities-button" type="button"><span class="dock-icon">♜</span><span><b>AMENITIES</b><small>Make it a pub</small></span></button>
+      </div>
+    </section>
+
+    <footer class="page-footer"><span>“Silence is golden. But gold is heavy. And heavy things explode.”</span><b>— HARRY PURVIS, PROBABLY</b><span class="save-status" id="save-status">SAVED LOCALLY</span></footer>
+  </div>
+
+  <div class="toast-card" id="toast" role="status" aria-live="polite" hidden>
+    <div class="toast-mark">H<br>P</div><div class="toast-copy"><p class="eyebrow" id="toast-title">A WORD FROM HARRY PURVIS</p><p id="toast-body"></p></div><button id="toast-close" type="button" aria-label="Dismiss">×</button>
+  </div>
+
+  <div class="modal-root" id="modal-root" hidden>
+    <div class="modal-backdrop" data-close-modal="true"></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="modal-close" type="button" aria-label="Close">×</button>
+      <div class="modal-scroll" id="modal-content"></div>
+    </section>
+  </div>
+
+  <div class="crisis-screen" id="crisis-screen" hidden aria-live="assertive">
+    <div class="crisis-paper">
+      <div class="crisis-rule"></div><p class="eyebrow" id="crisis-kicker">A MOMENT OF PERFECT SILENCE</p>
+      <div class="crisis-title" id="crisis-title">Nobody said a word.</div>
+      <p class="crisis-copy" id="crisis-copy">Even the clock seemed to feel it had been rather loud.</p>
+      <button class="button button-primary" id="crisis-button" type="button" hidden>CONTINUE <span>→</span></button>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <div class="live-announcer" id="live-announcer" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
