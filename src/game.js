@@ -470,7 +470,7 @@
     if (['writer', 'editor'].includes(type) && candidates.some((entry) => entry.id === 'upstairs') && Math.random() < 0.7) room = candidates.find((entry) => entry.id === 'upstairs');
     if ((type === 'choir' || type === 'kendell') && candidates.some((entry) => entry.id === 'green') && Math.random() < 0.8) room = candidates.find((entry) => entry.id === 'green');
     const def = C.PATRONS[type];
-    const maxPatience = U.rand(30, 90);
+    const maxPatience = U.rand(16, 38);
     const name = forcedName || def.names[Math.floor(Math.random() * def.names.length)];
     const patron = {
       id: state.nextPatronId++, type, name, roomId: room.id,
@@ -664,7 +664,7 @@
     const rivalMultiplier = state.rivalUntil > state.gameSeconds ? 1.11 : 1;
     const neonMultiplier = state.amenities.neonSign ? 0.87 : 1;
     const weatherMultiplier = state.weather === 'storm' ? 1.2 : state.weather === 'rain' ? 1.1 : state.weather === 'clear' ? 0.95 : 1;
-    state.nextSpawnAt = state.gameSeconds + U.rand(5, 15) * reputationMultiplier * rivalMultiplier * neonMultiplier * weatherMultiplier;
+    state.nextSpawnAt = state.gameSeconds + U.rand(3.4, 7) * reputationMultiplier * rivalMultiplier * neonMultiplier * weatherMultiplier;
   }
 
   /* --------------------------------------------------------------- events */
