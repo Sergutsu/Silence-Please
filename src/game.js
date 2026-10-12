@@ -677,10 +677,12 @@
     });
     state.eventUntil = state.gameSeconds + 35;
     state.currentEvent = 'Opera Night';
-    state.energy += 200;
+    // The surge is scaled to the machine: a shock on a prototype, not an execution.
+    const surge = Math.round(Math.min(200, Math.max(40, capacity() * 0.5)));
+    state.energy += surge;
     pushNews('OPERA NIGHT', 'SILENCE! LOCAL PUB’S MIRACLE DEVICE STUNS OPERA CROWD', C.NEWS_QUOTES[0]);
-    setCaption('Opera Night. All rooms +50 dB. The Silencer has stored 200 SE without consulting the management.');
-    ui().toast('OPERA NIGHT', 'All rooms +50 dB. Silence Energy +200. The singer has found the one note the apparatus cannot ignore.', 7800);
+    setCaption(`Opera Night. All rooms +50 dB. The Silencer has stored ${surge} SE without consulting the management.`);
+    ui().toast('OPERA NIGHT', `All rooms +50 dB. Silence Energy +${surge}. The singer has found the one note the apparatus cannot ignore.`, 7800);
     WH.audio.play('fanfare');
     for (let i = 0; i < 4; i++) spawnPatron('choir');
     if (state.energy >= capacity()) beginExplosion(false);
@@ -1268,6 +1270,19 @@
   }
 
   function enterNewWednesday() {
+    // Last orders. Anyone still holding a glass is asked, very politely, to go home.
+    const stragglers = state.patrons.length;
+    if (stragglers) {
+      const rooms = [...new Set(state.patrons.map((patron) => patron.roomId))];
+      state.patrons.forEach((patron) => scene().patronSay(patron, '“Time, gentlemen, please.”', { life: 1.6 }));
+      rooms.forEach((roomId) => scene().hatsOff(roomId));
+      state.patrons = [];
+      state.selectedPatron = null;
+      state.beerReady = false;
+      ui().setCaption(stragglers === 1
+        ? 'Time, gentlemen, please. The last regular takes the hint and the hat.'
+        : `Time, gentlemen, please. ${stragglers} regulars pretend they did not hear you.`);
+    }
     if (state.lastExplosionWeek === state.week) state.weeksSurvived = 0;
     else state.weeksSurvived += 1;
     state.stats.weeksBest = Math.max(state.stats.weeksBest || 0, state.weeksSurvived);

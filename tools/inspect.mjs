@@ -1,5 +1,4 @@
 /* Numeric layout inspection: catches overlaps and overflow the eye would catch in a browser. */
-import path from 'node:path';
 import { bootGame } from './harness.mjs';
 
 const ROOT = process.argv[2] || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -90,6 +89,9 @@ async function inspect({ w, h, label }) {
     });
   }
   // A poured pint should hover over the selected patron.
+  st().roomPage = 0;
+  WH.scene.markDirty();
+  step(6);
   const first = WH.scene.views.find((v) => !v.locked && v.avatars.size);
   if (first) {
     const entry = first.avatars.values().next().value;

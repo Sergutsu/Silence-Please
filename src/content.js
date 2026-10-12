@@ -73,8 +73,8 @@
     { tier: 2, name: 'Improved', capacity: 250, absorption: 10, vent: 2, cost: { research: 150 }, note: 'The valves are new. The humming is not.' },
     { tier: 3, name: 'Linearized', capacity: 500, absorption: 20, vent: 5, cost: { research: 400 }, note: 'Fenton says the word “linear” until everybody stops asking.' },
     { tier: 4, name: 'Purvis Modified', capacity: 1000, absorption: 40, vent: 15, cost: { research: 1000, manuscripts: 5 }, note: 'One note from Purvis, one afternoon from Fenton, one more rumour about the cellar.' },
-    { tier: 5, name: 'Perfected', capacity: 2500, absorption: 80, vent: 50, cost: { research: 2500, scoops: 10, loyalty: 5 }, note: 'Perfect. In the sense that it will now do exactly what it was built to do.' },
-    { tier: 6, name: 'Kendell-Proof', capacity: 6000, absorption: 160, vent: 120, cost: { research: 6000, manuscripts: 25, scoops: 30 }, note: 'Built after the opera. The opera has not been told.' }
+    { tier: 5, name: 'Perfected', capacity: 2500, absorption: 80, vent: 50, cost: { research: 1800, scoops: 10, loyalty: 5 }, note: 'Perfect. In the sense that it will now do exactly what it was built to do.' },
+    { tier: 6, name: 'Kendell-Proof', capacity: 6000, absorption: 160, vent: 120, cost: { research: 4200, manuscripts: 25, scoops: 30 }, note: 'Built after the opera. The opera has not been told.' }
   ];
 
   const SE_UPGRADES = [
