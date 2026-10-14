@@ -34,8 +34,11 @@
     victories: 0,
     certifiedUsed: false,
     ceded: false,
+    signal: { fragments: 0, choice: "", eggFound: false, starFound: false },
+    gagsSeen: [],
     ending: "",
     logs: [
+      "A narrowband pulse arrived from an uncharted object beyond the Kepler corridor. It repeats every 101 seconds.",
       "Forward reconnaissance reports enemy movement near the Kepler corridor.",
       "Standard Cruiser production is on schedule. Two hulls await completion.",
     ],
@@ -95,6 +98,19 @@
       !Array.isArray(state.pubReports)
     )
       return false;
+    if (
+      !state.signal ||
+      !Number.isInteger(state.signal.fragments) ||
+      state.signal.fragments < 0 ||
+      state.signal.fragments > 3 ||
+      !["", "reply", "silence"].includes(state.signal.choice) ||
+      typeof state.signal.eggFound !== "boolean" ||
+      typeof state.signal.starFound !== "boolean" ||
+      !Array.isArray(state.gagsSeen) ||
+      state.gagsSeen.length > 12 ||
+      !state.gagsSeen.every((turn) => Number.isInteger(turn) && turn >= 12 && turn <= 24)
+    )
+      return false;
     const b = state.battle;
     if (
       b &&
@@ -137,9 +153,10 @@
         })[char],
     );
   let s = fresh(),
-    view = location.hash === "#research" ? "research" : location.hash === "#white-hart" ? "white-hart" : "headquarters",
-    selected = location.hash === "#white-hart" ? 7 : 2,
-    toastTimer;
+    view = location.hash === "#research" ? "research" : location.hash === "#signal" ? "signal" : location.hash === "#white-hart" ? "white-hart" : "headquarters",
+    selected = location.hash === "#signal" ? 8 : location.hash === "#white-hart" ? 7 : 2,
+    toastTimer,
+    secretBuffer = "";
   try {
     const stored = JSON.parse(localStorage.getItem(KEY));
     if (
@@ -219,6 +236,13 @@
       kind: "friendly",
       sub: "Fleet Street, Norden Deep · Directorate local & prototype test annex",
     },
+    {
+      name: "THE QUIET ARRAY",
+      x: 88,
+      y: 90,
+      kind: "anomaly",
+      sub: "Unregistered object · Narrowband transmission · No known crew",
+    },
   ];
   function save() {
     try {
@@ -229,14 +253,44 @@
     }
   }
   function toast(text) {
-    $("command-toast").textContent = text;
-    $("command-toast").classList.add("visible");
+    const notice = $("command-toast");
+    notice.textContent = text;
+    notice.classList.remove("is-gag");
+    notice.classList.add("visible");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => $("command-toast").classList.remove("visible"), 4200);
+    toastTimer = setTimeout(() => notice.classList.remove("visible", "is-gag"), 4200);
   }
   function log(text) {
     s.logs.unshift(text);
     s.logs = s.logs.slice(0, 35);
+  }
+  const CAMPAIGN_GAGS = [
+    { turn: 13, reward: ["sp", 8], text: "The array answers with a kettle whistle. The signal-analysis unit has classified this as ‘probably a colleague.’ +8 SP." },
+    { turn: 17, reward: ["ip", 10], text: "A supply drone returns carrying its own customs form. Procurement stamps it ‘mission accomplished.’ +10 IP." },
+    { turn: 21, reward: ["pc", 3], text: "The admiral rotates the star chart 180 degrees so the enemy looks smaller. The scale is now classified. +3 PC." },
+  ];
+  function campaignGag() {
+    const gag = CAMPAIGN_GAGS.find((entry) => entry.turn === s.turn && !s.gagsSeen.includes(entry.turn));
+    if (!gag) return;
+    s.gagsSeen.push(gag.turn);
+    s[gag.reward[0]] += gag.reward[1];
+    if (gag.reward[0] === "pc") s.pc = Math.min(100, s.pc);
+    log(`FIELD GAG: ${gag.text}`);
+    toast(gag.text);
+    $("command-toast").classList.add("is-gag");
+  }
+  function findSignalEgg(which) {
+    const key = which === "star" ? "starFound" : "eggFound";
+    if (s.signal[key]) return false;
+    s.signal[key] = true;
+    const reward = which === "star" ? "+10 IP" : "+8 SP";
+    if (which === "star") s.ip += 10;
+    else s.sp += 8;
+    log(which === "star"
+      ? "Easter egg: a pinprick on the listener's glass was a navigation mark, left by the night crew. The coordinates point to a forgotten tea locker. +10 IP."
+      : "Easter egg: the observatory's old password was LIGHTHOUSE. A margin note reads: ‘If the sky ever answers, leave a lamp on.’ +8 SP.");
+    toast(`Easter egg found · ${reward} · The archive has gained a new note.`);
+    return true;
   }
   function modal(title, copy) {
     if (s.battle) {
@@ -259,23 +313,33 @@
   }
   function checkEnd() {
     if (s.ending) return;
+    const victory = s.enemy <= 0 && !s.hearings.length;
     if (s.capital <= 0 || s.reliability <= 0 || s.pc <= 0 || s.unrest >= 100)
       s.ending = "The final letter";
-    else if (s.enemy <= 0 && !s.hearings.length) {
-      s.ending =
-        s.certifiedUsed && s.norden
+    else if (victory) {
+      s.ending = s.signal.choice === "reply"
+        ? "A greeting in the dark"
+        : s.certifiedUsed && s.norden
           ? "A working theory"
           : !s.norden
             ? "Reliability outweighs genius"
             : "An expensive peace";
     } else if (s.turn >= 24) s.ending = "The capital falls";
-    if (s.ending) {
-      log(s.ending);
-      modal(
-        s.ending,
-        `<p>${s.enemy <= 0 && s.capital > 0 && s.reliability > 0 && s.pc > 0 && s.unrest < 100 ? "The enemy has surrendered. " + (s.norden ? "For once, the fleet returned with results instead of justifications." : "The shipyards never stopped. The torpedoes worked. That was enough.") : s.unrest >= 100 ? "The Military High Command has relieved you of duty. The admirals refuse to lose another crew to a scientifically impeccable excuse." : "To the tribunal: our specifications were flawless. Our fleet was not. The capital has fallen silent."}</p><p>Your campaign is archived. Start a new campaign from Dispatches.</p>`,
-      );
-    }
+    if (!s.ending) return;
+    log(s.ending);
+    const won = victory && s.capital > 0 && s.reliability > 0 && s.pc > 0 && s.unrest < 100;
+    const endingCopy = won
+      ? s.signal.choice === "reply"
+        ? "The last hostile ship leaves the corridor. Far beyond the reach of any fleet, the old transmitter answers with a new pulse. It is not a weapon, nor an order. It is a welcome—and the beginning of a much larger map."
+        : s.signal.choice === "silence"
+          ? "The enemy retreats from a capital they can no longer locate. The array remains quiet. Somewhere beyond the charted dark, a patient intelligence keeps listening."
+          : s.norden
+            ? "The enemy has surrendered. For once, the fleet returned with results instead of justifications."
+            : "The shipyards never stopped. The torpedoes worked. That was enough."
+      : s.unrest >= 100
+        ? "The Military High Command has relieved you of duty. The admirals refuse to lose another crew to a scientifically impeccable excuse."
+        : "To the tribunal: our specifications were flawless. Our fleet was not. The capital has fallen silent.";
+    modal(s.ending, `<p>${endingCopy}</p><p>Your campaign is archived. Start a new campaign from Dispatches.</p>`);
   }
   function resources() {
     const rows = [
@@ -314,23 +378,60 @@
     $("end-turn").disabled = !!s.ending || !!s.battle || !!s.hearings.length;
   }
   function map() {
-    let stars = "";
-    for (let i = 0; i < 95; i++)
-      stars += `<circle cx="${(i * 137 + 23) % 690}" cy="${(i * 83 + 15) % 350}" r="${i % 4 === 0 ? 1 : 0.55}" fill="#c7d0b1" opacity="${i % 3 === 0 ? 0.4 : 0.18}"/>`;
-    return `<div class="map"><div class="map-label">SECTOR 07 / ORION EXPANSE</div><svg viewBox="0 0 700 350" role="img" aria-label="Orion strategic map. Select a system for intelligence."><defs><pattern id="grid" width="35" height="35" patternUnits="userSpaceOnUse"><path d="M 35 0 L 0 0 0 35" fill="none" stroke="#638578" stroke-width=".5" opacity=".17"/></pattern><radialGradient id="glow"><stop stop-color="#5b866b" stop-opacity=".22"/><stop offset="1" stop-color="#5b866b" stop-opacity="0"/></radialGradient></defs><rect width="700" height="350" fill="url(#grid)"/><ellipse cx="220" cy="180" rx="240" ry="180" fill="url(#glow)"/>${stars}<path d="M485 0 Q575 75 500 150 T525 350 L700 350 L700 0Z" fill="#9e58451c"/><path d="M485 0 Q575 75 500 150 T525 350" stroke="#a76f55" stroke-dasharray="5 7" fill="none" opacity=".65"/><g stroke="#88a589" stroke-width="1" opacity=".4" fill="none"><path d="M130 195L245 90L340 180L260 285L130 195L340 180L405 65M245 90L405 65M405 65L470 154"/><path d="M340 180L515 235L598 120L405 65" stroke="#c19167" stroke-dasharray="4 5"/></g><text x="510" y="315" fill="#a87966" font-size="9" opacity=".6">HOSTILE SPACE</text>${systems
-      .map((original, i) => {
-        const n = systemInfo(i);
-        const c =
-          n.kind === "enemy"
-            ? "#cb8d72"
-            : n.kind === "contested"
-              ? "#d4bc7a"
-              : "#afc4a3";
-        return `<g class="map-node" data-system="${i}" role="button" tabindex="0" aria-label="${n.name}"><circle cx="${n.x}" cy="${n.y}" r="${i === selected ? 24 : 16}" fill="${c}0d" stroke="${c}" stroke-opacity="${i === selected ? 0.8 : 0.25}"/><circle cx="${n.x}" cy="${n.y}" r="${i === 0 ? 6 : i === 7 ? 7 : 4}" fill="${c}"/>${i === selected ? `<circle cx="${n.x}" cy="${n.y}" r="30" fill="none" stroke="${c}" stroke-dasharray="2 6" opacity=".4"/>` : ""}<text x="${n.x}" y="${n.y + 39}" fill="${c}" text-anchor="middle" font-size="9">${n.name}</text><text x="${n.x}" y="${n.y + 51}" fill="#81988b" text-anchor="middle" font-size="7">${i === 0 ? "CAPITAL" : i === 2 ? (s.victories ? "SECURED" : "⚠ CONTESTED") : i === 1 ? "SHIPYARDS" : i === 4 ? "NORDEN DEEP" : i === 7 ? "PUB / TEST ANNEX" : ""}</text></g>`;
-      })
-      .join(
-        "",
-      )}<g transform="translate(196 183)" fill="#a8bf9b"><path d="M0 0l-6 12 6-3 6 3Z"/><path d="M-13 10l-4 8 4-2 4 2Z"/><path d="M13 10l-4 8 4-2 4 2Z"/></g></svg><div class="map-coordinate">X 034.77 / Y 092.18</div></div><div class="map-legend"><span><i></i> IMPERIAL SYSTEM</span><span><i class="contested"></i> CONTESTED</span><span><i class="enemy"></i> ENEMY CONTROL</span></div>`;
+    const stars = Array.from({ length: 118 }, (_, i) => {
+      const x = (i * 137 + 23) % 690;
+      const y = (i * 83 + 15) % 350;
+      const radius = i % 9 === 0 ? 1.25 : i % 3 === 0 ? 0.9 : 0.55;
+      const delay = -((i * 17) % 55) / 10;
+      return `<circle class="map-star ${i % 9 === 0 ? "bright" : ""}" cx="${x}" cy="${y}" r="${radius}" style="--star-delay:${delay}s"/>`;
+    }).join("");
+    const routes = [
+      "M130 195L245 90L340 180L260 285L130 195",
+      "M130 195L340 180L405 65L245 90",
+      "M405 65L470 154L515 235L598 120L405 65",
+      "M88 90L130 195L245 90L405 65",
+      "M88 90L130 195L260 285",
+    ];
+    return `<div class="map"><div class="map-label"><span class="live-dot"></span>SECTOR 07 / ORION EXPANSE</div>
+      <svg class="star-map" viewBox="0 0 700 350" role="img" aria-label="Orion strategic star map. Select a system or the unidentified signal source for intelligence.">
+        <defs>
+          <pattern id="star-grid" width="35" height="35" patternUnits="userSpaceOnUse"><path d="M35 0H0V35" fill="none" stroke="#62819a" stroke-width=".5" opacity=".18"/></pattern>
+          <radialGradient id="map-nebula"><stop stop-color="#537e8d" stop-opacity=".28"/><stop offset=".52" stop-color="#354c72" stop-opacity=".12"/><stop offset="1" stop-color="#172334" stop-opacity="0"/></radialGradient>
+          <radialGradient id="map-core"><stop stop-color="#d5f9ff"/><stop offset=".2" stop-color="#78d3e4"/><stop offset="1" stop-color="#6ec4e0" stop-opacity="0"/></radialGradient>
+          <clipPath id="map-clip"><rect width="700" height="350" rx="4"/></clipPath>
+        </defs>
+        <g clip-path="url(#map-clip)">
+          <rect width="700" height="350" fill="#07111d"/>
+          <rect width="700" height="350" fill="url(#star-grid)"/>
+          <ellipse class="nebula-cloud" cx="250" cy="170" rx="290" ry="205" fill="url(#map-nebula)"/>
+          <ellipse class="nebula-cloud nebula-cloud-alt" cx="575" cy="110" rx="205" ry="180" fill="url(#map-nebula)"/>
+          ${stars}
+          <path d="M485 0Q575 75 500 150T525 350H700V0Z" fill="#c46d6220"/>
+          <path d="M485 0Q575 75 500 150T525 350" class="border-frontier"/>
+          <ellipse cx="340" cy="180" rx="295" ry="156" class="map-orbit"/>
+          <ellipse cx="340" cy="180" rx="225" ry="110" class="map-orbit map-orbit-inner" transform="rotate(-18 340 180)"/>
+          ${routes.map((route, i) => `<path class="route-line ${i >= 2 ? "hostile-route" : ""} ${i >= 3 ? "signal-route" : ""}" d="${route}"/>`).join("")}
+          <text x="540" y="315" class="hostile-space-label">HOSTILE SPACE</text>
+          <text x="31" y="326" class="map-coordinate-label">GALACTIC PLANE  /  014.8 LY</text>
+        </g>
+        ${systems.map((original, i) => {
+          const n = systemInfo(i);
+          const color = n.kind === "enemy" ? "#e98b75" : n.kind === "contested" ? "#e3c574" : n.kind === "anomaly" ? "#7de6ef" : "#9ed3b2";
+          const isSignal = i === 8;
+          const sublabel = i === 0 ? "CAPITAL" : i === 2 ? (s.victories ? "SECURED" : "⚠ CONTESTED") : i === 1 ? "SHIPYARDS" : i === 4 ? "NORDEN DEEP" : i === 7 ? "PUB / TEST ANNEX" : isSignal ? (s.signal.fragments === 3 ? "PATTERN RESOLVED" : "UNKNOWN CARRIER") : "";
+          return `<g class="map-node ${isSignal ? "map-node-anomaly" : ""} ${i === selected ? "selected" : ""}" data-system="${i}" role="button" tabindex="0" aria-label="${n.name}: ${n.sub}">
+            <circle class="node-orbit" cx="${n.x}" cy="${n.y}" r="${i === selected ? 25 : 17}" style="--node-color:${color}"/>
+            ${isSignal ? `<circle class="anomaly-ring anomaly-ring-a" cx="${n.x}" cy="${n.y}" r="11"/><circle class="anomaly-ring anomaly-ring-b" cx="${n.x}" cy="${n.y}" r="16"/><circle class="anomaly-core" cx="${n.x}" cy="${n.y}" r="7"/>` : `<circle class="node-core" cx="${n.x}" cy="${n.y}" r="${i === 0 || i === 7 ? 5 : 3.8}" style="--node-color:${color}"/>`}
+            ${i === selected ? `<circle class="node-selection" cx="${n.x}" cy="${n.y}" r="30"/>` : ""}
+            <text x="${n.x}" y="${n.y + 38}" class="node-label" text-anchor="middle" style="--node-color:${color}">${n.name}</text>
+            <text x="${n.x}" y="${n.y + 50}" class="node-sublabel" text-anchor="middle">${sublabel}</text>
+          </g>`;
+        }).join("")}
+        <g transform="translate(196 183)" class="fleet-marker"><path d="M0 0L-6 12L0 9L6 12Z"/><path d="M-13 10L-17 18L-13 16L-9 18Z"/><path d="M13 10L9 18L13 16L17 18Z"/></g>
+      </svg>
+      <div class="map-coordinate">X 034.77 / Y 092.18 <span>·</span> NAV SOLUTION LOCKED</div>
+    </div>
+    <div class="map-legend"><span><i></i> IMPERIAL SYSTEM</span><span><i class="contested"></i> CONTESTED</span><span><i class="enemy"></i> ENEMY CONTROL</span><span><i class="anomaly"></i> UNIDENTIFIED SIGNAL</span></div>`;
   }
   const ship = `<svg viewBox="0 0 120 70" fill="none" stroke="#6d8063" stroke-width="1"><path d="M7 39L25 30H63L78 22H98L113 34L100 42H32L22 48H8Z M33 30V42M63 30V42M78 22V42M8 36H26M12 33V45M18 33V45M46 30V23H58V30M52 23V15M69 31H101M68 37H94M32 48H90"/><path d="M2 55H118M2 12V58M117 12V58" stroke-dasharray="2 3" opacity=".3"/></svg>`;
   function productionSummary() {
@@ -346,7 +447,20 @@
       .join("");
   }
   function headquarters() {
-    return `<div class="grid"><section class="panel"><div class="panel-head"><h2>Strategic theatre</h2><span class="eyebrow">● LIVE INTELLIGENCE</span></div>${map()}<div class="system-detail"><div><strong>${systemInfo(selected).name}</strong><p>${systemInfo(selected).sub}</p></div>${selected === 7 ? '<button class="text-button" data-view="white-hart">Enter the pub →</button>' : selected === 4 ? '<button class="text-button" data-view="research">Enter Directorate ↗</button>' : '<button class="text-button" data-action="system">View intelligence ↗</button>'}</div></section><aside class="right-column"><section class="alert-card"><div class="eyebrow">RESEARCH DIRECTORATE</div><span class="stamp">URGENT</span><h3>${s.norden ? "“A minor adjustment to the laws of physics.”" : "Standardization is now doctrine."}</h3><p>${s.norden ? "Professor Norden requests authorization for Project Sphere. Assembly line interruption is considered “negligible.”" : "The directorate has been reassigned. Veteran engineers have returned to the assembly floor."}</p><div class="quote">${s.norden ? "“We cannot allow the inconvenience of a war to impede scientific progress.”" : "“The bolts fit the nuts again. We regard this as a breakthrough.”"}</div><div class="author">— ${s.norden ? "PROF. E. NORDEN" : "CHIEF ENGINEER VOSS"}</div><button class="outline wide" data-view="research">${s.norden ? "Review proposal" : "View research archive"} <span>→</span></button></section><section class="panel"><div class="panel-head"><h2>The balance of power</h2><span>⌁</span></div><div class="status-body"><div class="meter-row"><span>Our operational vessels</span><strong>${s.ships}</strong></div><div class="meter"><i style="width:${Math.min(100, (s.ships / 32) * 100)}%"></i></div><div class="meter-row"><span>Estimated enemy strength</span><strong>${s.enemy}</strong></div><div class="meter red"><i style="width:${Math.min(100, (s.enemy / 32) * 100)}%"></i></div><div class="meter-row"><span>Military unrest</span><strong>${s.unrest}%</strong></div><div class="meter red"><i style="width:${s.unrest}%"></i></div><p class="status-note">“Their ships are inferior in every measurable way. Except quantity.”</p></div></section></aside></div><section class="pub-dispatch panel"><div><span class="eyebrow">NORDEN DEEP / FLEET STREET</span><h2>A short walk from theory to the bar.</h2><p>The Research Directorate is next door. Every prototype can be checked at The White Hart. Claimed statistical deviation: <strong>0.000001%</strong>. ${s.pubChecks.reduce((a, b) => a + b, 0)} pub checks filed.</p></div><button class="outline" data-view="white-hart">Walk over to The White Hart →</button></section><div class="bottom-grid">${productionSummary()}<section class="panel"><div class="panel-head"><h2>Incoming dispatches</h2><button class="text-button" data-view="dispatches">All dispatches ↗</button></div>${dispatchList(2)}</section></div>`;
+    const selectedSystem = systemInfo(selected);
+    const signalStatus = s.signal.choice
+      ? (s.signal.choice === "reply" ? "REPLY TRANSMITTED" : "ARRAY HELD SILENT")
+      : `${s.signal.fragments} / 3 FRAGMENTS`;
+    const signalCopy = s.signal.fragments === 3
+      ? "An old intelligence has left a question in the dark. The answer is now yours to choose."
+      : "A pattern repeats beyond the mapped lanes. It is older than our charts, and it is getting louder.";
+    return `<div class="grid"><section class="panel"><div class="panel-head"><div><span class="eyebrow">NAVIGATION CHART / SECTOR 07</span><h2>Strategic theatre</h2></div><span class="tag live-tag">● LIVE INTELLIGENCE</span></div>${map()}<div class="system-detail"><div><strong>${selectedSystem.name}</strong><p>${selectedSystem.sub}</p></div>${selected === 7 ? '<button class="text-button" data-view="white-hart">Enter the pub →</button>' : selected === 4 ? '<button class="text-button" data-view="research">Enter Directorate ↗</button>' : selected === 8 ? '<button class="text-button" data-view="signal">Open signal archive ↗</button>' : '<button class="text-button" data-action="system">View intelligence ↗</button>'}</div></section><aside class="right-column"><section class="alert-card"><div class="eyebrow">RESEARCH DIRECTORATE</div><span class="stamp">URGENT</span><h3>${s.norden ? "“A minor adjustment to the laws of physics.”" : "Standardization is now doctrine."}</h3><p>${s.norden ? "Professor Norden requests authorization for Project Sphere. Assembly line interruption is considered “negligible.”" : "The directorate has been reassigned. Veteran engineers have returned to the assembly floor."}</p><div class="quote">${s.norden ? "“We cannot allow the inconvenience of a war to impede scientific progress.”" : "“The bolts fit the nuts again. We regard this as a breakthrough.”"}</div><div class="author">— ${s.norden ? "PROF. E. NORDEN" : "CHIEF ENGINEER VOSS"}</div><button class="outline wide" data-view="research">${s.norden ? "Review proposal" : "View research archive"} <span>→</span></button></section><section class="panel"><div class="panel-head"><h2>The balance of power</h2><span>⌁</span></div><div class="status-body"><div class="meter-row"><span>Our operational vessels</span><strong>${s.ships}</strong></div><div class="meter"><i style="width:${Math.min(100, (s.ships / 32) * 100)}%"></i></div><div class="meter-row"><span>Estimated enemy strength</span><strong>${s.enemy}</strong></div><div class="meter red"><i style="width:${Math.min(100, (s.enemy / 32) * 100)}%"></i></div><div class="meter-row"><span>Military unrest</span><strong>${s.unrest}%</strong></div><div class="meter red"><i style="width:${s.unrest}%"></i></div><p class="status-note">“Their ships are inferior in every measurable way. Except quantity.”</p></div></section></aside></div>
+      <section class="signal-brief panel ${s.signal.fragments === 3 ? "decoded" : ""}" aria-labelledby="signal-brief-title">
+        <div class="signal-brief-orbit" aria-hidden="true"><span class="signal-brief-core">◉</span><i></i><b></b></div>
+        <div class="signal-brief-copy"><span class="eyebrow">THE QUIET ARRAY / UNREGISTERED TRANSMISSION</span><h2 id="signal-brief-title">${s.signal.fragments === 3 ? "A question, left for us." : "Something is listening."}</h2><p>${signalCopy}</p></div>
+        <div class="signal-brief-status"><span>${signalStatus}</span><button class="outline" data-view="signal">${s.signal.fragments === 3 ? "Choose our answer ↗" : "Investigate the signal ↗"}</button></div>
+      </section>
+      <section class="pub-dispatch panel"><div><span class="eyebrow">NORDEN DEEP / FLEET STREET</span><h2>A short walk from theory to the bar.</h2><p>The Research Directorate is next door. Every prototype can be checked at The White Hart. Claimed statistical deviation: <strong>0.000001%</strong>. ${s.pubChecks.reduce((a, b) => a + b, 0)} pub checks filed.</p></div><button class="outline" data-view="white-hart">Walk over to The White Hart →</button></section><div class="bottom-grid">${productionSummary()}<section class="panel"><div class="panel-head"><h2>Incoming dispatches</h2><button class="text-button" data-view="dispatches">All dispatches ↗</button></div>${dispatchList(2)}</section></div>`;
   }
   function research() {
     return `<div class="cards">${techs.map((t, i) => `<article class="panel research-card"><span class="eyebrow">PROJECT 0${i + 1} / ${s.suspended[i] ? "GROUNDED" : s.tech[i] === 2 ? "FIELD CERTIFIED" : s.tech[i] ? "EXPERIMENTAL" : "AWAITING APPROVAL"}</span><div class="research-icon">${t.icon}</div><h2>${t.name}</h2><p>${t.desc}</p>${s.tests[i] ? `<p><b>Field report:</b> ${t.flaw}</p>` : '<p class="quote">“No significant limitations in the theoretical model.”</p>'}<button class="primary wide" data-action="research" data-id="${i}" ${s.tech[i] || !s.norden ? "disabled" : ""}>Authorize · ${t.cost} SP / 60 IP</button><button class="outline wide" data-action="test" data-id="${i}" ${!s.tech[i] || s.tech[i] === 2 ? "disabled" : ""}>Field test ${s.tests[i]}/2 · 15 SP / 20 IP</button><button class="outline wide" data-action="fix" data-id="${i}" ${s.tests[i] < 2 || s.tech[i] === 2 ? "disabled" : ""}>Engineer safeguards · 60 IP / 10 PC</button><button type="button" class="pub-check-link" data-action="pub-check" data-id="${i}">Check at The White Hart →<small>${s.pubChecks[i]} pub checks · claimed deviation 0.000001%</small></button></article>`).join("")}</div><section class="panel report" style="margin-top:22px"><h2>Personnel & doctrine</h2><p>Every new project halts cruiser production for two turns and increases bureaucratic chaos. Two field tests expose a flaw; engineering safeguards make the weapon safe. Replacing practical engineers doubles research income, but erodes fleet reliability.</p><div class="toolbar"><button class="outline" data-action="hr" ${!s.norden ? "disabled" : ""}>${s.theorists ? "Restore veteran engineers" : "Hire young theorists"} · 10 PC</button><button class="outline" data-action="fire" ${!s.norden ? "disabled" : ""}>Dismiss Norden · 35 PC</button></div></section>`;
@@ -354,6 +468,57 @@
   function production() {
     return `${productionSummary()}<div class="bottom-grid"><section class="panel report"><span class="eyebrow">BUREAU OF NAVAL PROCUREMENT</span><h2>Ships, not promises.</h2><p>Commission a batch of two standard cruisers. Construction takes two uninterrupted turns. ${s.ships} ships are currently operational.</p><button class="primary" data-action="build">Queue 2 cruisers · 80 IP</button></section><section class="panel report"><span class="eyebrow">TECHNICAL SPECIFICATION 004</span><h2>One standard. One fleet.</h2><p>Recalibrate instruments and restore interchangeable components: +15 reliability, −15 chaos. Capital integrity: ${s.capital}%.</p><button class="outline" data-action="standardize">Standardize fleet · 50 IP</button></section></div><section class="panel report" style="margin-top:22px"><h2>Trophy technology operation</h2><p>Cede Tau Ceti with a raw prototype intact. Enemy reverse-engineering will consume six vessels’ worth of resources, but abandoning the base costs 20 capital integrity. Requires an uncertified prototype.</p><button class="outline" data-action="cede" ${s.ceded ? "disabled" : ""}>${s.ceded ? "Tau Ceti ceded" : "Leave a poisoned gift · 10 PC"}</button></section>`;
   }
+  function signalArchive() {
+    const fragments = [
+      "The carrier is a sequence of prime intervals. It has repeated without drift for longer than our observatories have existed.",
+      "The gaps between the numbers encode a map—not of a place, but of a moment when our sun was young.",
+      "The last coordinate is this receiver. The sender knew we would build it, and left the channel open.",
+    ];
+    const costs = [
+      { ip: 15, sp: 8 },
+      { ip: 20, sp: 12 },
+      { ip: 25, sp: 15 },
+    ];
+    const found = s.signal.fragments;
+    const cost = costs[Math.min(found, costs.length - 1)];
+    const steps = fragments.map((fragment, i) => {
+      const status = i < found ? "RECOVERED" : i === found ? "READY TO LISTEN" : "ENCRYPTED";
+      return `<article class="signal-fragment ${i < found ? "recovered" : i === found ? "active" : "locked"}"><span class="fragment-index">0${i + 1}</span><span class="fragment-status">${status}</span><h3>${i < found ? ["A clock without a clockmaker", "A map hidden in the pauses", "A coordinate aimed at us"][i] : "Unresolved interval"}</h3><p>${i < found ? fragment : "The analyzer has not isolated this layer yet. The gaps may be carrying as much information as the signal."}</p></article>`;
+    }).join("");
+    const decoded = found >= 3;
+    const response = s.signal.choice;
+    const choiceMarkup = !decoded
+      ? `<div class="signal-choice-locked"><span class="choice-lock">⌁</span><div><strong>Response protocol locked</strong><p>Recover all three fragments to choose whether to answer the signal.</p></div></div>`
+      : response
+        ? `<div class="signal-response-filed ${response}"><span class="response-check">${response === "reply" ? "↗" : "◌"}</span><div><span class="eyebrow">RESPONSE FILED</span><h3>${response === "reply" ? "A greeting, sent into the dark." : "We chose to listen."}</h3><p>${response === "reply" ? "The transmission has left the array. Nothing answers yet. On the console, every clock begins to run a little faster." : "The array has gone quiet. For the first time in weeks, the enemy's long-range tracking has lost our capital's outline."}</p></div></div>`
+        : `<div class="signal-choice-grid"><button class="signal-choice reply" data-action="signal-choice" data-id="reply" ${s.pc < 12 ? "disabled" : ""}><span class="choice-icon">↗</span><span class="eyebrow">OPTION A · FIRST CONTACT</span><strong>Send a reply</strong><small>Spend 12 PC. Gain 15 SP. Open a channel to the unknown sender.</small></button><button class="signal-choice silence" data-action="signal-choice" data-id="silence"><span class="choice-icon">◌</span><span class="eyebrow">OPTION B · STRATEGIC CAUTION</span><strong>Keep the array silent</strong><small>Reduce enemy strength by 4 and restore 8% fleet reliability. The channel may not wait forever.</small></button></div>`;
+    return `<div class="signal-page">
+      <section class="signal-hero panel ${decoded ? "decoded" : ""}">
+        <div class="signal-art" aria-hidden="true">
+          <svg viewBox="0 0 360 260" role="presentation">
+            <defs><radialGradient id="signal-star-glow"><stop stop-color="#d7fbff"/><stop offset=".18" stop-color="#83e3ef"/><stop offset="1" stop-color="#83e3ef" stop-opacity="0"/></radialGradient><linearGradient id="signal-beam" x1="0" x2="1"><stop stop-color="#8ce7ef" stop-opacity="0"/><stop offset=".5" stop-color="#8ce7ef" stop-opacity=".65"/><stop offset="1" stop-color="#8ce7ef" stop-opacity="0"/></linearGradient></defs>
+            <path class="signal-gridline" d="M0 40H360M0 90H360M0 140H360M0 190H360M40 0V260M100 0V260M160 0V260M220 0V260M280 0V260M340 0V260"/>
+            <ellipse class="signal-orbit orbit-one" cx="184" cy="127" rx="126" ry="62"/>
+            <ellipse class="signal-orbit orbit-two" cx="184" cy="127" rx="85" ry="112" transform="rotate(42 184 127)"/>
+            <path class="signal-vector" d="M18 198C70 198 93 185 128 155S177 100 207 113 248 175 272 154 307 75 344 67"/>
+            <path class="signal-beam" d="M0 127H360"/>
+            <circle class="signal-pulse pulse-one" cx="184" cy="127" r="41"/><circle class="signal-pulse pulse-two" cx="184" cy="127" r="41"/>
+            <circle class="signal-star-core" cx="184" cy="127" r="32"/>
+            <text x="18" y="24">BAND 9 / CARRIER LOCKED</text><text x="239" y="242">101 SEC / CYCLE</text>
+          </svg>
+          <button class="signal-easter-star ${s.signal.starFound ? "found" : ""}" type="button" data-action="signal-star" aria-label="Inspect the faint star in the signal chart" title="A dim point outside the plotted field"><span>${s.signal.starFound ? "✦" : "·"}</span></button>
+          <span class="signal-art-caption">UNREGISTERED SOURCE · DISTANCE UNKNOWN</span>
+        </div>
+        <div class="signal-hero-copy"><span class="eyebrow"><i class="live-dot"></i> THE LONG QUIET / DEEP-SKY LISTENER</span><h2>The universe did not have to answer.</h2><p>At the edge of the mapped lanes, an impossible transmission repeats through the static. It carries no voice, no threat—only an invitation to notice that we are not alone.</p><div class="signal-meta"><span><strong>101s</strong> repeat interval</span><span><strong>${found}/3</strong> fragments recovered</span><span><strong>${response ? "FILED" : "OPEN"}</strong> response protocol</span></div></div>
+      </section>
+      <div class="signal-dashboard"><section class="panel signal-transcript"><div class="panel-head"><div><span class="eyebrow">LISTENING POST / AUTOMATIC TRANSCRIPT</span><h2>Three intervals. One message.</h2></div><span class="tag ${decoded ? "tag-resolved" : ""}">${decoded ? "PATTERN RESOLVED" : `${found} / 3 DECODED`}</span></div><div class="signal-fragments">${steps}</div><div class="signal-scan-row"><div><span class="eyebrow">NEXT ANALYSIS PASS</span><strong>${decoded ? "No further pass required" : `${cost.ip} IP  /  ${cost.sp} SP`}</strong></div><button class="primary" data-action="signal-scan" ${decoded || s.ip < cost.ip || s.sp < cost.sp ? "disabled" : ""}>${decoded ? "Signal parsed" : `Listen to next interval  ${found + 1}/3 →`}</button></div></section>
+        <aside class="panel signal-console"><span class="eyebrow">ARRAY STATUS</span><div class="console-readout"><span class="console-dot ${decoded ? "resolved" : ""}"></span><strong>${decoded ? "PATTERN RESOLVED" : "RECEIVING"}</strong><small>${decoded ? "Awaiting command authorization" : "Carrier stability 99.8%"}</small></div><div class="console-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="console-meter"><span>DECODING</span><strong>${Math.round(found / 3 * 100)}%</strong><div><i style="width:${found / 3 * 100}%"></i></div></div><p class="console-note">“It is not a voice. It is a knock on a door that has been waiting a very long time.”<small>— Dr. Imani Vale, Night Shift</small></p></aside></div>
+      <section class="panel signal-response-panel"><div class="panel-head"><div><span class="eyebrow">COMMAND AUTHORITY / RESPONSE PROTOCOL</span><h2>What should we send back?</h2></div><span class="tag">${response ? "DECISION ARCHIVED" : decoded ? "AWAITING YOUR ORDER" : "LOCKED"}</span></div>${choiceMarkup}</section>
+      <p class="signal-secret-hint"><span>✦</span> The night archivist insists the old telescope has one more message in it. Some words are keys.</p>
+      <section class="signal-gag panel"><span class="gag-badge">FIELD NOTE</span><p>${found ? "The analyzer's first draft classified the signal as “possibly a colleague with a very long commute.” A revised report is pending." : "A junior analyst asked if the signal could be turned down. The duty physicist has requested a different junior analyst."}</p><span class="gag-signature">NIGHT SHIFT / UNOFFICIAL</span></section>
+    </div>`;
+  }
+
   function systemInfo(i) {
     const n = { ...systems[i] };
     if (i === 3 && s.ceded) {
@@ -372,6 +537,10 @@
       n.sub = `Directorate local · ${s.pubChecks.reduce((a, b) => a + b, 0)} checks filed · Claimed deviation 0.000001%`;
     if (i === 0)
       n.sub = `Capital system · ${Math.max(0, s.capital)}% integrity`;
+    if (i === 8)
+      n.sub = s.signal.choice
+        ? `Unknown source · ${s.signal.choice === "reply" ? "a reply was transmitted" : "radio silence maintained"}`
+        : `Unregistered object · ${s.signal.fragments}/3 signal fragments decoded · No known crew`;
     return n;
   }
   function commandNotice() {
@@ -476,6 +645,8 @@
       s.hearings.length || s.logs.length;
     document.querySelector('nav [data-view="research"] b').textContent =
       s.tech.filter((n) => !n).length;
+    document.getElementById("signal-secret-count").textContent =
+      `${Number(s.signal.eggFound) + Number(s.signal.starFound)}/2`;
     const active = document.activeElement;
     const focus = active?.closest("#view")
       ? {
@@ -491,7 +662,7 @@
     const titles = {
       headquarters: [
         "Headquarters",
-        "The enemy has numbers. You have decisions to make.",
+        "A war is underway. Somewhere beyond it, something has answered.",
       ],
       research: [
         "Research Directorate",
@@ -505,6 +676,10 @@
         "Tactical Bridge",
         "Superior technology. Consequential decisions.",
       ],
+      signal: [
+        "Deep Signal",
+        "A patient intelligence has left a question in the dark. The answer is yours to choose.",
+      ],
       dispatches: [
         "Command dispatches",
         "For the record. For the war. For the eventual tribunal.",
@@ -516,6 +691,7 @@
     };
     const realm = $("pub-realm");
     const inPub = view === "white-hart";
+    document.body.classList.toggle("pub-mode", inPub);
     if (realm) {
       const wasHidden = realm.hidden;
       realm.hidden = !inPub;
@@ -542,7 +718,9 @@
             ? production()
             : view === "bridge"
               ? bridge()
-              : `<section class="panel"><div class="panel-head"><h2>Classified correspondence</h2><span class="tag">${s.logs.length} RECORDS</span></div>${dispatchList(35)}</section><div class="toolbar"><button class="outline" data-action="reset">Start new campaign</button><button class="outline" data-view="white-hart">Walk over to The White Hart →</button></div>${s.ending ? `<h2>${escapeHTML(s.ending)}</h2>` : ""}`);
+              : view === "signal"
+                ? signalArchive()
+                : `<section class="panel"><div class="panel-head"><h2>Classified correspondence</h2><span class="tag">${s.logs.length} RECORDS</span></div>${dispatchList(35)}</section><div class="toolbar"><button class="outline" data-action="reset">Start new campaign</button><button class="outline" data-view="white-hart">Walk over to The White Hart →</button></div>${s.ending ? `<h2>${escapeHTML(s.ending)}</h2>` : ""}`);
     if (focus) {
       const selector = focus.action
         ? `[data-action="${focus.action}"]${focus.id !== undefined ? `[data-id="${focus.id}"]` : ""}`
@@ -609,13 +787,22 @@
     log(
       `Cycle ${s.turn}: capital integrity ${Math.max(0, s.capital)}%. Enemy pressure continues; engage at the Tactical Bridge.`,
     );
+    campaignGag();
     checkEnd();
     save();
     render();
-    toast("Cycle advanced. Industrial and scientific allocations received.");
+    if (!s.gagsSeen.includes(s.turn))
+      toast("Cycle advanced. Industrial and scientific allocations received.");
   }
   function action(name, id) {
     if (name === "pub-check") return pubCheck(id);
+    if (name === "signal-star") {
+      if (findSignalEgg("star")) {
+        save();
+        render();
+      }
+      return;
+    }
     if (name === "reset") {
       modal(
         "Start a new campaign?",
@@ -655,6 +842,36 @@
       save();
       render();
       return;
+    }
+    if (name === "signal-scan") {
+      if (s.signal.fragments >= 3 || s.signal.choice) return;
+      const costs = [{ ip: 15, sp: 8 }, { ip: 20, sp: 12 }, { ip: 25, sp: 15 }];
+      const fee = costs[s.signal.fragments];
+      if (!spend(fee.ip, fee.sp)) return;
+      s.signal.fragments++;
+      const excerpts = [
+        "First interval isolated: prime-number pulses, stable across an unknown span of time.",
+        "Second interval isolated: the silence between pulses carries a map of our system at a younger age.",
+        "Third interval isolated: the final coordinate is this receiver. The sender expected us to build it.",
+      ];
+      log(`Deep-sky listening pass ${s.signal.fragments}/3. ${excerpts[s.signal.fragments - 1]}`);
+      toast(s.signal.fragments === 3 ? "Signal parsed. The receiver is part of the message." : `Signal fragment ${s.signal.fragments}/3 recovered. The pattern is getting clearer.`);
+    }
+    if (name === "signal-choice") {
+      if (s.signal.fragments < 3 || s.signal.choice || !["reply", "silence"].includes(id)) return;
+      if (id === "reply") {
+        if (!spend(0, 0, 12)) return;
+        s.sp += 15;
+        s.signal.choice = "reply";
+        log("First-contact protocol authorized. A short sequence of prime intervals leaves the array, carrying our name and no demands.");
+        toast("Reply transmitted. The next message may take a long time to arrive.");
+      } else {
+        s.signal.choice = "silence";
+        s.enemy = Math.max(0, s.enemy - 4);
+        s.reliability = Math.min(100, s.reliability + 8);
+        log("Radio silence maintained. The array's anomalous carrier masks the capital from four hostile vessels; fleet reliability improves by 8%.");
+        toast("The array goes quiet. Enemy tracking weakens; fleet reliability +8%.");
+      }
     }
     if (name === "formation" || name === "target") {
       if (s.battle && !Combat.order(s.battle, name, id))
@@ -846,14 +1063,23 @@
     } else
       action(
         el.dataset.action,
-        ["formation", "target"].includes(el.dataset.action)
+        ["formation", "target", "signal-choice"].includes(el.dataset.action)
           ? el.dataset.id
           : Number(el.dataset.id),
       );
   });
   document.addEventListener("keydown", (e) => {
+    const textEntry = e.target?.closest?.("input, textarea, select, [contenteditable='true']");
+    if (!textEntry && view !== "white-hart" && !$("briefing").open && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+      secretBuffer = (secretBuffer + e.key.toLowerCase()).slice(-10);
+      if (secretBuffer.endsWith("lighthouse") && findSignalEgg("word")) {
+        secretBuffer = "";
+        save();
+        render();
+      }
+    }
     if (
-      e.target.closest("[data-system]") &&
+      e.target?.closest?.("[data-system]") &&
       (e.key === "Enter" || e.key === " ")
     ) {
       e.preventDefault();
@@ -881,6 +1107,26 @@
   });
   $("end-turn").onclick = endTurn;
   $("close-dialog").onclick = () => $("briefing").close();
+  const fullscreenButton = $("fullscreen-toggle");
+  const updateFullscreenLabel = () => {
+    const active = Boolean(document.fullscreenElement);
+    fullscreenButton.setAttribute("aria-label", active ? "Exit fullscreen" : "Enter fullscreen");
+    fullscreenButton.title = active ? "Exit fullscreen" : "Toggle fullscreen";
+    fullscreenButton.textContent = active ? "⤢" : "⛶";
+  };
+  fullscreenButton.onclick = async () => {
+    try {
+      if (!document.fullscreenEnabled) {
+        toast("Fullscreen is not available in this browser. The interface will still fit your screen.");
+        return;
+      }
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (_) {
+      toast("Fullscreen was blocked by the browser. Try again from a direct click.");
+    }
+  };
+  document.addEventListener("fullscreenchange", updateFullscreenLabel);
   $("help").onclick = () => {
     if (s.battle) {
       s.battle.paused = true;
@@ -888,7 +1134,7 @@
     }
     modal(
       "Your orders, Commander.",
-      "<p>Defeat the enemy before cycle 24. Every turn grants 40 IP and 15 SP, but enemy pressure damages the capital. Zero capital integrity, reliability, or political capital means defeat.</p><p>Queue standard cruisers in Fleet & Production. Authorizing research halts production. Test prototypes twice, then fund safeguards—or risk their flaws in battle.</p><p>One sortie is available per campaign cycle. At the Tactical Bridge, deploy and pause to choose a formation and target priority. Torpedoes fire automatically. Escort screens protect analyzer vessels; enemies learn to target them. Unsafe fields cause hysteresis when deactivated, even after victory. Resolve failure reports in Dispatches: fund revisions or risk a military mutiny. Standardize to restore reliability. Dismiss Norden for the logistics ending, or certify a weapon for the synergy ending.</p><p>The White Hart is your officers’ recreation annex: the Directorate’s local on Fleet Street, Norden Deep. Authorize a project here, then check it over a control pint at the pub. Each check credits one field test; safeguards are still required. The original pub ledger remains intact. Campaign progress saves locally after each action.</p>",
+      "<p>Defeat the enemy before cycle 24. Every turn grants 40 IP and 15 SP, but enemy pressure damages the capital. Zero capital integrity, reliability, or political capital means defeat.</p><p>Queue standard cruisers in Fleet & Production. Authorizing research halts production. Test prototypes twice, then fund safeguards—or risk their flaws in battle.</p><p>One sortie is available per campaign cycle. At the Tactical Bridge, deploy and pause to choose a formation and target priority. Torpedoes fire automatically. Escort screens protect analyzer vessels; enemies learn to target them. Unsafe fields cause hysteresis when deactivated, even after victory. Resolve failure reports in Dispatches: fund revisions or risk a military mutiny.</p><p>The Deep Signal chapter is a Clarke-inspired, original first-contact story: spend IP and SP to decode three fragments, then choose to reply for a new ending or stay silent for a tactical advantage. The night shift also left two Easter eggs in the archive. Some words are keys.</p><p>The White Hart is your officers’ recreation annex: the Directorate’s local on Fleet Street, Norden Deep. Authorize a project here, then check it over a control pint at the pub. Each check credits one field test; safeguards are still required. The pub and campaign saves remain separate. Use the ⛶ button for browser fullscreen; layouts also adapt to narrow screens. Campaign progress saves locally after each action.</p>",
     );
   };
   save();

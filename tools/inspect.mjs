@@ -1,7 +1,9 @@
 /* Numeric layout inspection: catches overlaps and overflow the eye would catch in a browser. */
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { bootGame } from './harness.mjs';
 
-const ROOT = process.argv[2] || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = process.argv[2] || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WIDTHS = [
   { w: 900, h: 620, label: 'desktop' },
   { w: 760, h: 560, label: 'laptop' },

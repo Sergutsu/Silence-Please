@@ -29,5 +29,6 @@ The pub harness boots from `index.html` (the pub is a department of the command 
 | `combat.mjs` | 12 deterministic combat checks: formation tradeoffs, suppression, support-ship adaptation, field protection, delayed hysteresis, safe weapons, pause, and legacy battle restoration. No npm dependencies. |
 | `campaign.mjs` | Basic DOM integration: authorize, test, certify, deploy, pause, fight, advance production, select a system, and reset. Requires jsdom. |
 | `campaign-edge.mjs` | Campaign policy checks: sortie limits, revision hearings, mutiny, funding shortfalls, save/reload, migration, malformed archives, safe dispatch rendering, and complete standardization/synergy victories from the starting economy. Requires jsdom. |
+| `story.mjs` | Deep Signal integration: map contact, three-stage decoding, both response branches, first-contact ending, Easter-egg rewards, cycle gag, and old-save migration. Requires jsdom. |
 
 Run from the repository root. These tools don't change the campaign archive in your real browser.

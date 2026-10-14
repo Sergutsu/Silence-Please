@@ -1,12 +1,13 @@
 # Absolute Superiority — The Burden of Genius
 
-An offline retro-futurist strategy prototype, with **The White Hart** preserved as its officers’ recreation annex. Uses the existing plain JavaScript, CSS, and vendored PixiJS stack: no runtime dependencies, bundler, or network requests.
+An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The new **Deep Signal** chapter is an original, Clarke-inspired story about cosmic scale, first contact, scientific humility, and the choice to answer the unknown. It draws on broad speculative themes—not a direct adaptation of any one Arthur C. Clarke story. Every campaign and pub screen now shares one dark nocturne interface, reflows to the viewport without horizontal scrolling, and includes an optional browser-fullscreen control. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
 
 ## Enter Supreme Command
 
 Serve this folder with `python3 -m http.server 8000 --bind 0.0.0.0`, then open `index.html`. The campaign also works directly from the static files (browser storage availability may vary for file URLs).
 
-- **Headquarters:** select systems on the strategic map and review intelligence, resources, and correspondence.
+- **Headquarters:** select systems on the animated strategic map and review intelligence, resources, and correspondence. The Quiet Array appears as a new, pulsing unknown contact.
+- **Deep Signal:** spend IP / SP across three listening passes to decode an ancient mathematical transmission. Reply to open a first-contact ending, or preserve radio silence for a fleet-strength advantage. Three campaign-cycle gags and two new archive Easter eggs reward close attention; one can be found by typing `lighthouse` outside the pub.
 - **Research Directorate:** authorize prototypes, interrupt production, conduct two field tests, and fund engineering safeguards. Unsafe weapons have real consequences. Hire theorists for faster research at the cost of reliability, or dismiss Norden for standardization.
 - **Fleet & Production:** commission cruisers, restore reliability, reduce chaos, or cede a base with a poisoned prototype.
 - **Tactical Bridge:** one sortie per campaign cycle. Deploy, pause with the button or Space, then issue formation and targeting orders. Line ahead balances fire and protection; escort screens protect vulnerable support ships; breakthrough trades safety for firepower. Command-vessel targeting disrupts enemy fire. Torpedoes fire automatically; wonder weapons are activated manually. Leaving the bridge or hiding the browser tab pauses combat. Strategic changes require fleet recovery.
@@ -14,12 +15,12 @@ Serve this folder with `python3 -m http.server 8000 --bind 0.0.0.0`, then open `
 - **Enemy adaptation:** the analyzer boosts firepower while its support vessel survives. Enemies learn to prioritize it across engagements. The exponential field protects only the flagship; an unsafe field causes a six-second command blackout on deactivation, including recovery after victory or withdrawal.
 - **The White Hart (Research Directorate’s local):** the pub sits beside the Directorate on the headquarters map. Authorize a project, then open the pub’s *experimental round*. Keep the pub running for 12 seconds and serve one control pint; the report is filed to the campaign at Norden’s claimed 0.000001% statistical deviation. The first checks count as field tests (20 IP / 15 SP); certified projects can be re-audited for 5 IP. Engineering safeguards remain mandatory. The pub’s own ledger and gameplay are unchanged.
 - **End turn:** receive resources and advance production, while the enemy damages capital integrity. Defeat the enemy before cycle 24. Capital, reliability, or political capital reaching zero ends the campaign.
-- **Endings:** win through standardization after dismissing Norden, deploy a certified weapon for scientific synergy, or settle for an expensive peace. Campaign starts mid-war at cycle 12.
+- **Endings:** win through standardization after dismissing Norden, deploy a certified weapon for scientific synergy, settle for an expensive peace, or send a first-contact reply and reach **A greeting in the dark**. Campaign starts mid-war at cycle 12.
 - **The White Hart:** the pub is a department of the same page — pick it from the sidebar or walk over from the map/Research cards. The pub only runs while you are standing in it. Its ledger (save) and mechanics are retained; `white-hart.html` now just redirects into the command page.
 
 Campaign progress is archived in localStorage separately from the pub. Earlier v1 campaign archives migrate automatically; restored engagements always pause. Malformed saves fall back to a new campaign. Reset from Dispatches. This is a playable vertical slice: fleet-level tactical simulation, not individual-ship movement orders or a full grand-strategy territory simulation.
 
-New files: `command.css` (command interface), `src/campaign.js` (campaign state and rendering), `src/campaign-combat.js` (deterministic combat rules), `src/directorate.js` + `src/pub-annex.js` (shared pub/Directorate contract), `tools/campaign*.mjs` and `tools/combat.mjs` (integration and rules tests). The pub's markup lives inside `index.html`; its stylesheets (`style.css`, `pub-annex.css`) are compiled into `pub-realm.css` by `node tools/scope-pub-css.mjs` so they only apply inside the pub realm. Pub game code is unchanged apart from pausing while off-screen.
+Key game files: `command.css` (command interface and dark theme), `src/campaign.js` (campaign state, story, and rendering), `src/campaign-combat.js` (deterministic combat rules), `src/directorate.js` + `src/pub-annex.js` (shared pub/Directorate contract), and `tools/*.mjs` (integration and rules tests). The pub's markup lives inside `index.html`; its stylesheets (`style.css`, `pub-annex.css`) are compiled into `pub-realm.css` by `node tools/scope-pub-css.mjs` so they only apply inside the pub realm. Pub game code is unchanged apart from pausing while off-screen.
 
 ### Verification
 
@@ -28,6 +29,7 @@ npm install --no-save --package-lock=false jsdom
 node tools/combat.mjs
 node tools/campaign.mjs
 node tools/campaign-edge.mjs
+node tools/story.mjs
 node tools/smoke.mjs
 node tools/apicheck.mjs
 ```
