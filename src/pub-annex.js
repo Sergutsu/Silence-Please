@@ -136,6 +136,7 @@
         message =
           "Report filed at Supreme Command. The landlord has declined co-authorship.";
         window.WH.game.saveState();
+        window.ASCampaign?.sync();
         window.WH.ui.toast(
           "Directorate report filed",
           `${D.DEVIATION} statistical deviation. ${result.report.credit ? "One field-test credit transferred to the campaign." : "Repeat audit recorded."} Safeguards still required.`,
@@ -157,6 +158,7 @@
       if (button && !button.disabled) start(Number(button.dataset.pubProject));
     });
     $("annex-cancel").addEventListener("click", () => cancel());
+    document.querySelector("[data-annex-jump]")?.addEventListener("click", () => $("pub-laboratory").scrollIntoView({ block: "start" }));
     const requested = Number(
       new URLSearchParams(location.search).get("project"),
     );
@@ -166,6 +168,15 @@
     }
     setInterval(sample, 250);
   }
+  function requisition(id) {
+    if (!D.PROJECTS[id]) return;
+    read();
+    message = `Requisition received: ${D.PROJECTS[id].name}. Begin its check below when the pub is ready.`;
+    refresh(true);
+    $("pub-laboratory")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+  }
+  function shown() { read(); refresh(true); }
+  window.ASPubAnnex = { requisition, shown };
   window.addEventListener("storage", (e) => {
     if (e.key === D.KEY) {
       read();

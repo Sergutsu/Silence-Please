@@ -22,7 +22,7 @@ All three print a single line on success and exit non-zero on failure.
 
 ## Absolute Superiority campaign
 
-The original pub harness now reads `white-hart.html`; the new `index.html` is Supreme Command. The campaign adds no runtime packages.
+The pub harness boots from `index.html` (the pub is a department of the command page; the harness un-hides `#pub-realm` first). `scope-pub-css.mjs` regenerates `pub-realm.css` from `style.css` + `pub-annex.css`. The campaign adds no runtime packages.
 
 | Script | Coverage |
 | --- | --- |

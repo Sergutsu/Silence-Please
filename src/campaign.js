@@ -137,7 +137,7 @@
         })[char],
     );
   let s = fresh(),
-    view = location.hash === "#research" ? "research" : "headquarters",
+    view = location.hash === "#research" ? "research" : location.hash === "#white-hart" ? "white-hart" : "headquarters",
     selected = location.hash === "#white-hart" ? 7 : 2,
     toastTimer;
   try {
@@ -229,10 +229,10 @@
     }
   }
   function toast(text) {
-    $("toast").textContent = text;
-    $("toast").classList.add("visible");
+    $("command-toast").textContent = text;
+    $("command-toast").classList.add("visible");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => $("toast").classList.remove("visible"), 4200);
+    toastTimer = setTimeout(() => $("command-toast").classList.remove("visible"), 4200);
   }
   function log(text) {
     s.logs.unshift(text);
@@ -346,10 +346,10 @@
       .join("");
   }
   function headquarters() {
-    return `<div class="grid"><section class="panel"><div class="panel-head"><h2>Strategic theatre</h2><span class="eyebrow">● LIVE INTELLIGENCE</span></div>${map()}<div class="system-detail"><div><strong>${systemInfo(selected).name}</strong><p>${systemInfo(selected).sub}</p></div>${selected === 7 ? '<a class="text-button" href="white-hart.html">Enter the pub ↗</a>' : selected === 4 ? '<button class="text-button" data-view="research">Enter Directorate ↗</button>' : '<button class="text-button" data-action="system">View intelligence ↗</button>'}</div></section><aside class="right-column"><section class="alert-card"><div class="eyebrow">RESEARCH DIRECTORATE</div><span class="stamp">URGENT</span><h3>${s.norden ? "“A minor adjustment to the laws of physics.”" : "Standardization is now doctrine."}</h3><p>${s.norden ? "Professor Norden requests authorization for Project Sphere. Assembly line interruption is considered “negligible.”" : "The directorate has been reassigned. Veteran engineers have returned to the assembly floor."}</p><div class="quote">${s.norden ? "“We cannot allow the inconvenience of a war to impede scientific progress.”" : "“The bolts fit the nuts again. We regard this as a breakthrough.”"}</div><div class="author">— ${s.norden ? "PROF. E. NORDEN" : "CHIEF ENGINEER VOSS"}</div><button class="outline wide" data-view="research">${s.norden ? "Review proposal" : "View research archive"} <span>→</span></button></section><section class="panel"><div class="panel-head"><h2>The balance of power</h2><span>⌁</span></div><div class="status-body"><div class="meter-row"><span>Our operational vessels</span><strong>${s.ships}</strong></div><div class="meter"><i style="width:${Math.min(100, (s.ships / 32) * 100)}%"></i></div><div class="meter-row"><span>Estimated enemy strength</span><strong>${s.enemy}</strong></div><div class="meter red"><i style="width:${Math.min(100, (s.enemy / 32) * 100)}%"></i></div><div class="meter-row"><span>Military unrest</span><strong>${s.unrest}%</strong></div><div class="meter red"><i style="width:${s.unrest}%"></i></div><p class="status-note">“Their ships are inferior in every measurable way. Except quantity.”</p></div></section></aside></div><section class="pub-dispatch panel"><div><span class="eyebrow">NORDEN DEEP / FLEET STREET</span><h2>A short walk from theory to the bar.</h2><p>The Research Directorate is next door. Every prototype can be checked at The White Hart. Claimed statistical deviation: <strong>0.000001%</strong>. ${s.pubChecks.reduce((a, b) => a + b, 0)} pub checks filed.</p></div><a class="outline" href="white-hart.html">Visit The White Hart ↗</a></section><div class="bottom-grid">${productionSummary()}<section class="panel"><div class="panel-head"><h2>Incoming dispatches</h2><button class="text-button" data-view="dispatches">All dispatches ↗</button></div>${dispatchList(2)}</section></div>`;
+    return `<div class="grid"><section class="panel"><div class="panel-head"><h2>Strategic theatre</h2><span class="eyebrow">● LIVE INTELLIGENCE</span></div>${map()}<div class="system-detail"><div><strong>${systemInfo(selected).name}</strong><p>${systemInfo(selected).sub}</p></div>${selected === 7 ? '<button class="text-button" data-view="white-hart">Enter the pub →</button>' : selected === 4 ? '<button class="text-button" data-view="research">Enter Directorate ↗</button>' : '<button class="text-button" data-action="system">View intelligence ↗</button>'}</div></section><aside class="right-column"><section class="alert-card"><div class="eyebrow">RESEARCH DIRECTORATE</div><span class="stamp">URGENT</span><h3>${s.norden ? "“A minor adjustment to the laws of physics.”" : "Standardization is now doctrine."}</h3><p>${s.norden ? "Professor Norden requests authorization for Project Sphere. Assembly line interruption is considered “negligible.”" : "The directorate has been reassigned. Veteran engineers have returned to the assembly floor."}</p><div class="quote">${s.norden ? "“We cannot allow the inconvenience of a war to impede scientific progress.”" : "“The bolts fit the nuts again. We regard this as a breakthrough.”"}</div><div class="author">— ${s.norden ? "PROF. E. NORDEN" : "CHIEF ENGINEER VOSS"}</div><button class="outline wide" data-view="research">${s.norden ? "Review proposal" : "View research archive"} <span>→</span></button></section><section class="panel"><div class="panel-head"><h2>The balance of power</h2><span>⌁</span></div><div class="status-body"><div class="meter-row"><span>Our operational vessels</span><strong>${s.ships}</strong></div><div class="meter"><i style="width:${Math.min(100, (s.ships / 32) * 100)}%"></i></div><div class="meter-row"><span>Estimated enemy strength</span><strong>${s.enemy}</strong></div><div class="meter red"><i style="width:${Math.min(100, (s.enemy / 32) * 100)}%"></i></div><div class="meter-row"><span>Military unrest</span><strong>${s.unrest}%</strong></div><div class="meter red"><i style="width:${s.unrest}%"></i></div><p class="status-note">“Their ships are inferior in every measurable way. Except quantity.”</p></div></section></aside></div><section class="pub-dispatch panel"><div><span class="eyebrow">NORDEN DEEP / FLEET STREET</span><h2>A short walk from theory to the bar.</h2><p>The Research Directorate is next door. Every prototype can be checked at The White Hart. Claimed statistical deviation: <strong>0.000001%</strong>. ${s.pubChecks.reduce((a, b) => a + b, 0)} pub checks filed.</p></div><button class="outline" data-view="white-hart">Walk over to The White Hart →</button></section><div class="bottom-grid">${productionSummary()}<section class="panel"><div class="panel-head"><h2>Incoming dispatches</h2><button class="text-button" data-view="dispatches">All dispatches ↗</button></div>${dispatchList(2)}</section></div>`;
   }
   function research() {
-    return `<div class="cards">${techs.map((t, i) => `<article class="panel research-card"><span class="eyebrow">PROJECT 0${i + 1} / ${s.suspended[i] ? "GROUNDED" : s.tech[i] === 2 ? "FIELD CERTIFIED" : s.tech[i] ? "EXPERIMENTAL" : "AWAITING APPROVAL"}</span><div class="research-icon">${t.icon}</div><h2>${t.name}</h2><p>${t.desc}</p>${s.tests[i] ? `<p><b>Field report:</b> ${t.flaw}</p>` : '<p class="quote">“No significant limitations in the theoretical model.”</p>'}<button class="primary wide" data-action="research" data-id="${i}" ${s.tech[i] || !s.norden ? "disabled" : ""}>Authorize · ${t.cost} SP / 60 IP</button><button class="outline wide" data-action="test" data-id="${i}" ${!s.tech[i] || s.tech[i] === 2 ? "disabled" : ""}>Field test ${s.tests[i]}/2 · 15 SP / 20 IP</button><button class="outline wide" data-action="fix" data-id="${i}" ${s.tests[i] < 2 || s.tech[i] === 2 ? "disabled" : ""}>Engineer safeguards · 60 IP / 10 PC</button><a class="pub-check-link" href="white-hart.html?project=${i}#pub-laboratory">Check at The White Hart ↗<small>${s.pubChecks[i]} pub checks · claimed deviation 0.000001%</small></a></article>`).join("")}</div><section class="panel report" style="margin-top:22px"><h2>Personnel & doctrine</h2><p>Every new project halts cruiser production for two turns and increases bureaucratic chaos. Two field tests expose a flaw; engineering safeguards make the weapon safe. Replacing practical engineers doubles research income, but erodes fleet reliability.</p><div class="toolbar"><button class="outline" data-action="hr" ${!s.norden ? "disabled" : ""}>${s.theorists ? "Restore veteran engineers" : "Hire young theorists"} · 10 PC</button><button class="outline" data-action="fire" ${!s.norden ? "disabled" : ""}>Dismiss Norden · 35 PC</button></div></section>`;
+    return `<div class="cards">${techs.map((t, i) => `<article class="panel research-card"><span class="eyebrow">PROJECT 0${i + 1} / ${s.suspended[i] ? "GROUNDED" : s.tech[i] === 2 ? "FIELD CERTIFIED" : s.tech[i] ? "EXPERIMENTAL" : "AWAITING APPROVAL"}</span><div class="research-icon">${t.icon}</div><h2>${t.name}</h2><p>${t.desc}</p>${s.tests[i] ? `<p><b>Field report:</b> ${t.flaw}</p>` : '<p class="quote">“No significant limitations in the theoretical model.”</p>'}<button class="primary wide" data-action="research" data-id="${i}" ${s.tech[i] || !s.norden ? "disabled" : ""}>Authorize · ${t.cost} SP / 60 IP</button><button class="outline wide" data-action="test" data-id="${i}" ${!s.tech[i] || s.tech[i] === 2 ? "disabled" : ""}>Field test ${s.tests[i]}/2 · 15 SP / 20 IP</button><button class="outline wide" data-action="fix" data-id="${i}" ${s.tests[i] < 2 || s.tech[i] === 2 ? "disabled" : ""}>Engineer safeguards · 60 IP / 10 PC</button><button type="button" class="pub-check-link" data-action="pub-check" data-id="${i}">Check at The White Hart →<small>${s.pubChecks[i]} pub checks · claimed deviation 0.000001%</small></button></article>`).join("")}</div><section class="panel report" style="margin-top:22px"><h2>Personnel & doctrine</h2><p>Every new project halts cruiser production for two turns and increases bureaucratic chaos. Two field tests expose a flaw; engineering safeguards make the weapon safe. Replacing practical engineers doubles research income, but erodes fleet reliability.</p><div class="toolbar"><button class="outline" data-action="hr" ${!s.norden ? "disabled" : ""}>${s.theorists ? "Restore veteran engineers" : "Hire young theorists"} · 10 PC</button><button class="outline" data-action="fire" ${!s.norden ? "disabled" : ""}>Dismiss Norden · 35 PC</button></div></section>`;
   }
   function production() {
     return `${productionSummary()}<div class="bottom-grid"><section class="panel report"><span class="eyebrow">BUREAU OF NAVAL PROCUREMENT</span><h2>Ships, not promises.</h2><p>Commission a batch of two standard cruisers. Construction takes two uninterrupted turns. ${s.ships} ships are currently operational.</p><button class="primary" data-action="build">Queue 2 cruisers · 80 IP</button></section><section class="panel report"><span class="eyebrow">TECHNICAL SPECIFICATION 004</span><h2>One standard. One fleet.</h2><p>Recalibrate instruments and restore interchangeable components: +15 reliability, −15 chaos. Capital integrity: ${s.capital}%.</p><button class="outline" data-action="standardize">Standardize fleet · 50 IP</button></section></div><section class="panel report" style="margin-top:22px"><h2>Trophy technology operation</h2><p>Cede Tau Ceti with a raw prototype intact. Enemy reverse-engineering will consume six vessels’ worth of resources, but abandoning the base costs 20 capital integrity. Requires an uncertified prototype.</p><button class="outline" data-action="cede" ${s.ceded ? "disabled" : ""}>${s.ceded ? "Tau Ceti ceded" : "Leave a poisoned gift · 10 PC"}</button></section>`;
@@ -383,6 +383,13 @@
       "“Hysteresis is not a defect. It is the metric remembering its previous configuration. The admirals should have anticipated memory.”",
     ];
     return `<section class="hearing panel" aria-label="Unresolved failure report"><div class="hearing-heading"><div><span class="eyebrow">SCIENTIFIC COUNCIL / REPORT ${String(h.turn).padStart(3, "0")}</span><h2>${techs[h.id].name}: a question of responsibility</h2></div><span class="stamp">RULING REQUIRED</span></div><p>${escapeHTML(h.text)}</p><blockquote>${copy[h.id]}</blockquote><div class="hearing-bottom"><span>MILITARY UNREST <strong>${s.unrest}%</strong> / MUTINY AT 100%</span><span>${s.hearings.length} REPORT${s.hearings.length === 1 ? "" : "S"} PENDING</span></div><div class="toolbar"><button class="primary" data-action="resolve" data-id="0" ${s.battle || s.ip < 30 || s.pc < 12 ? "disabled" : ""}>Order revisions · 30 IP / 12 PC</button><button class="outline" data-action="resolve" data-id="1" ${s.battle ? "disabled" : ""}>Endorse justification · +25 unrest</button></div><p class="hearing-help">Revisions suspend the prototype until certified, add one production-halt cycle, and reduce unrest by 15. Endorsement adds 8 chaos. ${s.battle ? "Rulings unlock after fleet recovery." : "No new deployment or turn advance until all reports are resolved."}</p></section>`;
+  }
+  function pubCheck(id) {
+    if (!techs[id]) return;
+    view = "white-hart";
+    save();
+    render();
+    window.ASPubAnnex?.requisition(id);
   }
   function resolveHearing(choice) {
     const h = s.hearings[0];
@@ -502,9 +509,29 @@
         "Command dispatches",
         "For the record. For the war. For the eventual tribunal.",
       ],
+      "white-hart": [
+        "The White Hart",
+        "Fleet Street, Norden Deep. The Research Directorate’s local, and its most honest laboratory.",
+      ],
     };
+    const realm = $("pub-realm");
+    const inPub = view === "white-hart";
+    if (realm) {
+      const wasHidden = realm.hidden;
+      realm.hidden = !inPub;
+      $("view").hidden = inPub;
+      if (inPub && wasHidden) {
+        window.dispatchEvent(new Event("resize"));
+        window.ASPubAnnex?.shown();
+      }
+    }
     $("page-title").textContent = titles[view][0];
     $("page-subtitle").textContent = titles[view][1];
+    if (inPub) {
+      $("page-title").textContent = titles[view][0];
+      $("page-subtitle").textContent = titles[view][1];
+      return;
+    }
     $("view").innerHTML =
       commandNotice() +
       (view === "headquarters"
@@ -515,7 +542,7 @@
             ? production()
             : view === "bridge"
               ? bridge()
-              : `<section class="panel"><div class="panel-head"><h2>Classified correspondence</h2><span class="tag">${s.logs.length} RECORDS</span></div>${dispatchList(35)}</section><div class="toolbar"><button class="outline" data-action="reset">Start new campaign</button><a class="outline" href="white-hart.html">Visit The White Hart ↗</a></div>${s.ending ? `<h2>${escapeHTML(s.ending)}</h2>` : ""}`);
+              : `<section class="panel"><div class="panel-head"><h2>Classified correspondence</h2><span class="tag">${s.logs.length} RECORDS</span></div>${dispatchList(35)}</section><div class="toolbar"><button class="outline" data-action="reset">Start new campaign</button><button class="outline" data-view="white-hart">Walk over to The White Hart →</button></div>${s.ending ? `<h2>${escapeHTML(s.ending)}</h2>` : ""}`);
     if (focus) {
       const selector = focus.action
         ? `[data-action="${focus.action}"]${focus.id !== undefined ? `[data-id="${focus.id}"]` : ""}`
@@ -539,6 +566,7 @@
       render();
     }
   }
+  window.ASCampaign = { sync: syncArchive, get view() { return view; } };
   window.addEventListener("storage", (e) => {
     if (e.key === KEY) syncArchive();
   });
@@ -587,6 +615,7 @@
     toast("Cycle advanced. Industrial and scientific allocations received.");
   }
   function action(name, id) {
+    if (name === "pub-check") return pubCheck(id);
     if (name === "reset") {
       modal(
         "Start a new campaign?",

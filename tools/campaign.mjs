@@ -73,7 +73,7 @@ click('[data-action="reset"]');
 click("#confirm-reset");
 assert.equal(state().turn, 12);
 assert.equal(state().ships, 8);
-assert.ok(w.document.querySelector('a[href="white-hart.html"]'));
+assert.ok(w.document.querySelector('nav [data-view="white-hart"]'));
 dom.window.close();
 console.log(
   "Campaign integration checks passed: research, safeguards, battle, pause, production, map, reset.",

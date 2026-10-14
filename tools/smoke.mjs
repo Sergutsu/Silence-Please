@@ -114,9 +114,11 @@ virtualConsole.on('error', (...args) => errors.push(`console.error: ${args.join(
 virtualConsole.on('warn', () => {});
 virtualConsole.on('log', () => {});
 
-const html = fs.readFileSync(path.join(ROOT, 'white-hart.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
+const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
 const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole, url: 'https://whitehart.test/', pretendToBeVisual: true });
 const { window } = dom;
+// The pub is a department of the command page; the harness stands inside it, as a player would.
+window.document.getElementById('pub-realm').hidden = false;
 window.PIXI = makePixi(window);
 // jsdom provides the browser's read-only performance object.
 

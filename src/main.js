@@ -57,7 +57,10 @@
     WH.game.selectPatron(list[next].id);
   }
 
+  const pubOnScreen = () => { const realm = document.getElementById('pub-realm'); return !realm || !realm.hidden; };
   function handleKey(event) {
+    if (!pubOnScreen()) return;
+    if (document.querySelector('dialog[open]')) return;
     if (event.target?.closest?.('[data-annex-controls]')) return;
     if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
     const key = event.key;
@@ -149,6 +152,8 @@
     const now = performance.now();
     let dt = (now - lastFrameAt) / 1000;
     lastFrameAt = now;
+    // The pub only runs while you are standing in it; the rest of the war waits elsewhere.
+    if (!pubOnScreen()) return;
     if (!Number.isFinite(dt) || dt < 0) dt = 0;
     dt = Math.min(dt, 0.1);
 
