@@ -148,13 +148,13 @@
     state.lastSaveAt = Date.now();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-      const status = U.$('#save-status');
+      const status = U.$('#pub-save-status');
       if (status) {
         status.textContent = 'SAVED LOCALLY';
         status.classList.remove('saving');
       }
     } catch (error) {
-      const status = U.$('#save-status');
+      const status = U.$('#pub-save-status');
       if (status) status.textContent = 'NO LOCAL LEDGER';
     }
   }

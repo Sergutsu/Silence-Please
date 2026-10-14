@@ -2,9 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#101c20" />
-    <title>Absolute Superiority — Supreme Command</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#080d16" />
+    <meta name="description" content="A dark, Clarke-inspired strategy game about a wartime fleet, an impossible signal, and the price of looking up." />
+    <title>Absolute Superiority — The Long Quiet</title>
     <link rel="stylesheet" href="command.css" />
     <link rel="stylesheet" href="pub-realm.css" />
     <script defer src="vendor/pixi.min.js"></script>
@@ -26,7 +28,7 @@
       <a class="brand" href="index.html"
         ><span class="crest">✦</span
         ><span
-          >ABSOLUTE<br />SUPERIORITY<small>THE BURDEN OF GENIUS</small></span
+          >ABSOLUTE<br />SUPERIORITY<small>THE BURDEN OF GENIUS · THE LONG QUIET</small></span
         ></a
       >
       <div class="command-label">SUPREME COMMAND / 01</div>
@@ -38,6 +40,7 @@
         ><button data-view="production">
           <span>▥</span> Fleet & Production</button
         ><button data-view="bridge"><span>⌖</span> Tactical Bridge</button
+        ><button data-view="signal"><span>◉</span> Deep Signal <b id="signal-secret-count">0/2</b></button
         ><button data-view="dispatches">
           <span>▤</span> Dispatches <b>2</b>
         </button>
@@ -62,18 +65,18 @@
         <div class="commander">
           <span class="avatar">SC</span
           ><span>Supreme Commander<small>LEVEL OMEGA CLEARANCE</small></span
-          ><button id="help" aria-label="Campaign instructions">?</button>
+          ><button id="help" type="button" aria-label="Campaign instructions" title="Campaign instructions">?</button><button id="fullscreen-toggle" type="button" aria-label="Enter fullscreen" title="Toggle fullscreen">⛶</button>
         </div>
       </header>
       <main>
         <div class="page-heading">
           <div>
             <p class="eyebrow">
-              THE ORION CAMPAIGN <span>/</span> STRATEGIC OVERVIEW
+              THE ORION CAMPAIGN <span>/</span> THE LONG QUIET
             </p>
             <h1 id="page-title">Headquarters</h1>
             <p id="page-subtitle">
-              The enemy has numbers. You have decisions to make.
+              The enemy is advancing. Somewhere beyond it, something has answered.
             </p>
           </div>
           <div class="turn-control">
@@ -226,7 +229,7 @@
           <button class="dock-button" id="amenities-button" type="button"><span aria-hidden="true">🪑</span><span>AMENITIES</span></button>
           <button class="dock-button" id="dock-vent-button" type="button"><span aria-hidden="true">↧</span><span id="dock-vent-copy">VENT</span></button>
         </nav>
-        <p class="save-status" id="save-status">SAVED LOCALLY</p>
+        <p class="save-status" id="pub-save-status">SAVED LOCALLY</p>
       </aside>
     </main>
   </div>

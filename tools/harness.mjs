@@ -104,7 +104,7 @@ export async function bootGame(rootDir, { record = false, width = 760, height = 
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', (error) => {
-    if (/HTMLCanvasElement.prototype.getContext/.test(error.message)) return;
+    if (/Not implemented: HTMLCanvasElement(?:'s)? getContext\(\) method/.test(error.message)) return;
     errors.push(`jsdomError: ${error.message}`);
   });
   virtualConsole.on('error', (...args) => errors.push(`console.error: ${args.join(' ')}`));
