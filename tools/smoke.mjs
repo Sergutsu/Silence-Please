@@ -107,7 +107,7 @@ function makePixi(window) {
 const errors = [];
 const virtualConsole = new VirtualConsole();
 virtualConsole.on('jsdomError', (error) => {
-  if (/HTMLCanvasElement.prototype.getContext/.test(error.message)) return; // expected without the canvas package
+  if (/HTMLCanvasElement.*getContext/.test(error.message)) return; // expected without the canvas package
   errors.push(`jsdomError: ${error.message}`);
 });
 virtualConsole.on('error', (...args) => errors.push(`console.error: ${args.join(' ')}`));
@@ -117,8 +117,10 @@ virtualConsole.on('log', () => {});
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
 const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole, url: 'https://whitehart.test/', pretendToBeVisual: true });
 const { window } = dom;
+// The pub is a department of the command page; the harness stands inside it, as a player would.
+window.document.getElementById('pub-realm').hidden = false;
 window.PIXI = makePixi(window);
-window.performance = window.performance || { now: () => Date.now() };
+// jsdom provides the browser's read-only performance object.
 
 const FILES = ['src/util.js', 'src/content.js', 'src/audio.js', 'src/fx.js', 'src/scene.js', 'src/game.js', 'src/ui.js', 'src/main.js'];
 const originalError = window.console.error;

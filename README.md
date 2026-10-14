@@ -1,3 +1,39 @@
+# Absolute Superiority — The Burden of Genius
+
+An offline retro-futurist strategy prototype, with **The White Hart** preserved as its officers’ recreation annex. Uses the existing plain JavaScript, CSS, and vendored PixiJS stack: no runtime dependencies, bundler, or network requests.
+
+## Enter Supreme Command
+
+Serve this folder with `python3 -m http.server 8000 --bind 0.0.0.0`, then open `index.html`. The campaign also works directly from the static files (browser storage availability may vary for file URLs).
+
+- **Headquarters:** select systems on the strategic map and review intelligence, resources, and correspondence.
+- **Research Directorate:** authorize prototypes, interrupt production, conduct two field tests, and fund engineering safeguards. Unsafe weapons have real consequences. Hire theorists for faster research at the cost of reliability, or dismiss Norden for standardization.
+- **Fleet & Production:** commission cruisers, restore reliability, reduce chaos, or cede a base with a poisoned prototype.
+- **Tactical Bridge:** one sortie per campaign cycle. Deploy, pause with the button or Space, then issue formation and targeting orders. Line ahead balances fire and protection; escort screens protect vulnerable support ships; breakthrough trades safety for firepower. Command-vessel targeting disrupts enemy fire. Torpedoes fire automatically; wonder weapons are activated manually. Leaving the bridge or hiding the browser tab pauses combat. Strategic changes require fleet recovery.
+- **Scientific hearings:** failures create persistent reports. Pay 30 IP / 12 PC to demand revisions (grounds the prototype until certified, adds one retooling cycle, reduces unrest), or endorse the excuse (+25 military unrest and +8 chaos). Unresolved reports block turn advancement and deployment; 100 unrest triggers a mutiny.
+- **Enemy adaptation:** the analyzer boosts firepower while its support vessel survives. Enemies learn to prioritize it across engagements. The exponential field protects only the flagship; an unsafe field causes a six-second command blackout on deactivation, including recovery after victory or withdrawal.
+- **The White Hart (Research Directorate’s local):** the pub sits beside the Directorate on the headquarters map. Authorize a project, then open the pub’s *experimental round*. Keep the pub running for 12 seconds and serve one control pint; the report is filed to the campaign at Norden’s claimed 0.000001% statistical deviation. The first checks count as field tests (20 IP / 15 SP); certified projects can be re-audited for 5 IP. Engineering safeguards remain mandatory. The pub’s own ledger and gameplay are unchanged.
+- **End turn:** receive resources and advance production, while the enemy damages capital integrity. Defeat the enemy before cycle 24. Capital, reliability, or political capital reaching zero ends the campaign.
+- **Endings:** win through standardization after dismissing Norden, deploy a certified weapon for scientific synergy, or settle for an expensive peace. Campaign starts mid-war at cycle 12.
+- **The White Hart:** the pub is a department of the same page — pick it from the sidebar or walk over from the map/Research cards. The pub only runs while you are standing in it. Its ledger (save) and mechanics are retained; `white-hart.html` now just redirects into the command page.
+
+Campaign progress is archived in localStorage separately from the pub. Earlier v1 campaign archives migrate automatically; restored engagements always pause. Malformed saves fall back to a new campaign. Reset from Dispatches. This is a playable vertical slice: fleet-level tactical simulation, not individual-ship movement orders or a full grand-strategy territory simulation.
+
+New files: `command.css` (command interface), `src/campaign.js` (campaign state and rendering), `src/campaign-combat.js` (deterministic combat rules), `src/directorate.js` + `src/pub-annex.js` (shared pub/Directorate contract), `tools/campaign*.mjs` and `tools/combat.mjs` (integration and rules tests). The pub's markup lives inside `index.html`; its stylesheets (`style.css`, `pub-annex.css`) are compiled into `pub-realm.css` by `node tools/scope-pub-css.mjs` so they only apply inside the pub realm. Pub game code is unchanged apart from pausing while off-screen.
+
+### Verification
+
+```sh
+npm install --no-save --package-lock=false jsdom
+node tools/combat.mjs
+node tools/campaign.mjs
+node tools/campaign-edge.mjs
+node tools/smoke.mjs
+node tools/apicheck.mjs
+```
+
+---
+
 # Silence, Please — The White Hart
 
 A PixiJS pub-management game about the quietest pub on Fleet Street, the loudest machine in London, and the landlord who refuses to choose between them.

@@ -57,7 +57,11 @@
     WH.game.selectPatron(list[next].id);
   }
 
+  const pubOnScreen = () => { const realm = document.getElementById('pub-realm'); return !realm || !realm.hidden; };
   function handleKey(event) {
+    if (!pubOnScreen()) return;
+    if (document.querySelector('dialog[open]')) return;
+    if (event.target?.closest?.('[data-annex-controls]')) return;
     if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
     const key = event.key;
     const code = event.code || key;
@@ -148,6 +152,8 @@
     const now = performance.now();
     let dt = (now - lastFrameAt) / 1000;
     lastFrameAt = now;
+    // The pub only runs while you are standing in it; the rest of the war waits elsewhere.
+    if (!pubOnScreen()) return;
     if (!Number.isFinite(dt) || dt < 0) dt = 0;
     dt = Math.min(dt, 0.1);
 
@@ -262,7 +268,7 @@
         WH.ui.setCaption('Three regulars have arrived. One of them has brought a notebook and an opinion.');
         WH.ui.toast('Wednesday, 7:00 PM', 'Serve a patron, pull a pint, then tap them again. The Silencer is already on in the General Bar. There is a cat somewhere. There is usually a cat.', 9600);
       } else {
-        WH.ui.toast('The White Hart is open again', 'Your ledger has been restored. The regulars have been waiting, but not impatiently.', 5500);
+        WH.ui.toast('The White Hart is open again', 'Your ledger has been restored. The Directorate scientists are back from next door. One of them has brought a prototype.', 5500);
       }
       WH.game.saveState();
     } catch (error) {

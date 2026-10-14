@@ -20,7 +20,7 @@
     {
       id: 'snug', name: 'The Snug', short: 'SNUG', seats: 2, cost: 120,
       special: 'Scientists only · +3 Research / sec', style: 'snug', accepts: ['scientist'],
-      blurb: 'Two seats, one blackboard, and a rule about tweed that nobody will explain.',
+      blurb: 'The Directorate’s off-duty scientists. Two seats, one blackboard, and a rule about tweed that nobody will explain.',
       palette: { wall: 0x374a4d, wallTop: 0x43605f, floor: 0x3d3122, accent: 0xbfae6a, light: 0xdfe08f }
     },
     {
@@ -248,6 +248,10 @@
   };
 
   const CHALK_LINES = [
+    'Norden says 0.000001%. The landlord says use a coaster.',
+    'Research Directorate next door. Sensible conversation in here.',
+    'No annihilation spheres on the oak. This means you, Professor.',
+    'Gravity is complimentary. Nuts and bolts are not.',
     'TONIGHT: QUIZ. PRIZE: A PINT. QUESTIONS: HARD.',
     'MIND THE SILENCER. IT MINDS YOU BACK.',
     'NO SINGING AFTER 11. (BURT EXCEPTED. BURT IS A SPECIAL CASE.)',

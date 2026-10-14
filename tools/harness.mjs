@@ -114,8 +114,10 @@ export async function bootGame(rootDir, { record = false, width = 760, height = 
   const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
   const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole, url: 'https://whitehart.test/', pretendToBeVisual: true });
   const { window } = dom;
+  // The pub is a department of the command page; the harness stands inside it, as a player would.
+  window.document.getElementById('pub-realm').hidden = false;
   window.PIXI = makePixi(window, { record });
-  window.performance = window.performance || { now: () => Date.now() };
+  // jsdom provides the browser's read-only performance object.
 
   for (const file of FILES) {
     const code = fs.readFileSync(path.join(rootDir, file), 'utf8');
