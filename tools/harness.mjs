@@ -111,11 +111,11 @@ export async function bootGame(rootDir, { record = false, width = 760, height = 
   virtualConsole.on('warn', () => {});
   virtualConsole.on('log', () => {});
 
-  const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
+  const html = fs.readFileSync(path.join(rootDir, 'white-hart.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
   const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole, url: 'https://whitehart.test/', pretendToBeVisual: true });
   const { window } = dom;
   window.PIXI = makePixi(window, { record });
-  window.performance = window.performance || { now: () => Date.now() };
+  // jsdom provides the browser's read-only performance object.
 
   for (const file of FILES) {
     const code = fs.readFileSync(path.join(rootDir, file), 'utf8');

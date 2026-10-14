@@ -309,7 +309,13 @@
   /* ------------------------------------------------------------ room decor */
   function drawWindow(g, x, y, w, h, sky = 0x58646a) {
     fill(g, x - 2, y - 2, w + 4, h + 4, 0x674d30, 1, 2, 0xb48e54, 1);
-    fill(g, x, y, w, h, sky, 1);
+    fill(g, x, y, w, h, 0x172e35, 1);
+    // Old leaded windows, a new address: Norden Deep beyond Fleet Street's roofs.
+    for (let star = 0; star < 9; star++) {
+      circle(g, x + w * (0.08 + ((star * 7) % 9) / 11), y + h * (0.08 + ((star * 3) % 7) / 22), Math.max(0.35, w / 110), 0xe2e4c4, 0.7);
+    }
+    circle(g, x + w * 0.75, y + h * 0.24, w * 0.11, 0x718f87, 0.7);
+    line(g, x + w * 0.55, y + h * 0.31, x + w * 0.96, y + h * 0.16, 0xd0c291, 1, 0.65);
     fill(g, x + 2, y + h * 0.56, w - 4, h * 0.42, 0x263d40, 0.9);
     for (let i = 0; i < 5; i++) {
       const bx = x + 3 + i * (w - 6) / 5;
@@ -317,6 +323,11 @@
       fill(g, bx, y + h * 0.6 - bh, w / 8, bh, 0x273235, 0.9);
       fill(g, bx + w / 13, y + h * 0.6 - bh - 2, w / 20, 3, 0x8a7350, 0.9);
     }
+    // A research radar dish above the familiar chimney pots.
+    line(g, x + w * 0.3, y + h * 0.51, x + w * 0.3, y + h * 0.32, 0xa2b7a2, 1, 0.8);
+    const dish = newGraphics();
+    dish.moveTo(x + w * 0.2, y + h * 0.3).quadraticCurveTo(x + w * 0.3, y + h * 0.48, x + w * 0.4, y + h * 0.3).stroke({ color: 0xc6b58d, width: 1, alpha: 0.9 });
+    g.addChild(dish);
     line(g, x + w / 2, y, x + w / 2, y + h, 0x9b8255, 2, 0.9);
     line(g, x, y + h * 0.5, x + w, y + h * 0.5, 0x9b8255, 2, 0.9);
     line(g, x + w * 0.12, y + h * 0.79, x + w * 0.86, y + h * 0.81, 0xb7aa77, 1, 0.5);
@@ -543,6 +554,10 @@
     // Housing.
     fill(g, -30 * s, -14 * s, 60 * s, 30 * s, 0x29251d, 1, 3, 0xc39c5d, 1.4);
     fill(g, -26 * s, -10 * s, 52 * s, 22 * s, 0x1e2420, 1, 2, 0x8d7a4c, 0.8);
+    fill(g, -23 * s, -7 * s, 17 * s, 12 * s, 0x0d251f, 1, 2, 0x9c8356, 0.8);
+    const trace = newGraphics();
+    trace.moveTo(-21 * s, 0).lineTo(-18 * s, 0).lineTo(-16 * s, -4 * s).lineTo(-13 * s, 3 * s).lineTo(-10 * s, -1 * s).lineTo(-8 * s, -1 * s).stroke({ color: 0xa4d0a9, width: 0.8, alpha: 0.9 });
+    g.addChild(trace);
     node.addChild(g);
     // Three tubes.
     const tubes = [];
@@ -575,7 +590,7 @@
     needle.moveTo(0, 2 * s).lineTo(0, -7 * s).stroke({ color: 0x8c2f2c, width: 1.6 * s, cap: 'round' });
     gauge.addChild(needle);
     node.addChild(gauge);
-    const label = text(node, 'FENTON & CO.', 0, 12 * s, { fontFamily: 'Courier New', fontSize: 6 * s, fill: '#c1a66b', letterSpacing: 0.5 }, 0.5, 0.5);
+    const label = text(node, 'FENTON / R.D.', 0, 12 * s, { fontFamily: 'Courier New', fontSize: 6 * s, fill: '#c1a66b', letterSpacing: 0.5 }, 0.5, 0.5);
     node.eventMode = 'static';
     node.cursor = 'pointer';
     node.hitArea = new window.PIXI.Rectangle(-32 * s, -38 * s, 64 * s, 54 * s);
@@ -653,6 +668,9 @@
   function drawPatronProp(g, patron, s) {
     const type = patron.type;
     if (type === 'scientist') {
+      // Directorate passes pinned to tweed, not spacesuits.
+      fill(g, -5 * s, -26 * s, 5 * s, 7 * s, 0xd5c89d, 1, 0.5);
+      line(g, -4*s, -24*s, -1*s, -24*s, 0x405c50, 0.7, 1);
       const p = newGraphics();
       p.circle(-3.4 * s, -37 * s, 3.1 * s).stroke({ color: 0xb4c0a8, width: 1 * s });
       p.circle(3.4 * s, -37 * s, 3.1 * s).stroke({ color: 0xb4c0a8, width: 1 * s });

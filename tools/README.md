@@ -18,3 +18,16 @@ node tools/smoke.mjs
 | `balance.mjs` | Plays the pub itself with a simple policy (serve the most impatient patron, hold the zones just below capacity, buy rooms and tiers) and prints a week-by-week ledger. `node tools/balance.mjs . 25` runs twenty-five Wednesdays in about ninety seconds and shows whether the economy still holds together. |
 
 All three print a single line on success and exit non-zero on failure.
+
+
+## Absolute Superiority campaign
+
+The original pub harness now reads `white-hart.html`; the new `index.html` is Supreme Command. The campaign adds no runtime packages.
+
+| Script | Coverage |
+| --- | --- |
+| `combat.mjs` | 12 deterministic combat checks: formation tradeoffs, suppression, support-ship adaptation, field protection, delayed hysteresis, safe weapons, pause, and legacy battle restoration. No npm dependencies. |
+| `campaign.mjs` | Basic DOM integration: authorize, test, certify, deploy, pause, fight, advance production, select a system, and reset. Requires jsdom. |
+| `campaign-edge.mjs` | Campaign policy checks: sortie limits, revision hearings, mutiny, funding shortfalls, save/reload, migration, malformed archives, safe dispatch rendering, and complete standardization/synergy victories from the starting economy. Requires jsdom. |
+
+Run from the repository root. These tools don't change the campaign archive in your real browser.
