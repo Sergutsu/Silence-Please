@@ -2,9 +2,26 @@
 
 An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The campaign now opens with a five-page **introduction**, teaches itself through an eleven-step **tutorial coach**, and keeps a **mission panel** on every screen that names the next order — so the loop is legible before it is playable. The whole background is drawn from the themes of **Isaac Asimov’s stories**: an empire whose fall has become arithmetic, machines that cannot escape their own directives, one question asked for ten thousand years, and a night that comes once every 2,049 years. It is an original homage, not an adaptation — no passage is copied, and the full debt is itemised in the Dispatches dossier. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
 
-## The terminal is never still
+## Every screen moves differently
 
-The command interface is a running machine, not a form. A scanner crosses the glass every twenty-one seconds, a rail of light walks the sidebar, a trace runs the length of the top bar, and the strategic map has a radar cone sweeping behind the contacts. Panels arrive in sequence rather than appearing all at once, cards lift and take a sheen on hover, meters shimmer while they fill, the current-order button breathes, and **every resource number flashes once when it changes** — so a cycle's cost is visible without reading the report. When the next order changes, the mission panel pulses. Every one of these is switched off under `prefers-reduced-motion`.
+Nothing here is one effect pasted across the interface — each department has its own movement, matched to what it is:
+
+| Where | What it does |
+| --- | --- |
+| The glass itself | A CRT refresh line falls down the terminal every 9.5s over a fine raster |
+| Sidebar | A rail of light walks the conduit; departments grow a marker bar as you reach for them; the uplink lamp blinks on a step |
+| Top bar | A trace runs the length of the rule; the end-turn arrow nudges |
+| The five readouts | Five behaviours: IP wipes a rule under the figure, SP breathes, PC steps like a status lamp, reliability sways like a needle (and shivers when degraded), chaos flickers |
+| Headquarters | A radar cone turns behind the contacts; the intelligence readout keeps a typing caret |
+| Research | Cards unfold from their spine, the glyph turns when you consider it, a scan line drops vertically |
+| Shipyard | A build laser crosses the hull; the queue bar runs as a conveyor |
+| Bridge | The engagement tag blinks while the fight is live; ready weapons carry a lamp |
+| Dispatches | Records file in from the left; the newest keeps a live cursor; the dossier uncovers downward |
+| Mission panel | The loop lights itself **in order** — ASSESS → BUILD → RESEARCH → ENGAGE → LISTEN → ADVANCE — so the sequence is visible; the order button charges and releases |
+| Hearings | The card's edge pulses red and the stamp knocks, because a ruling is overdue |
+| Signal | Fragments decode left to right, one after another |
+
+On top of that, **every resource number flashes once when its value actually changes**, and the mission panel pulses when the next order changes — so a cycle's cost is visible without reading the report. All of it is switched off under `prefers-reduced-motion`, and `tools/motion.mjs` fails the build if a signature animation is reused somewhere else or if any animation escapes the reduced-motion block.
 
 ## First ten minutes
 

@@ -1,12 +1,13 @@
-/* Checks for the moving interface: the star that was removed, the ambient layer,
-   the numbers that flash when they change, and the mission panel that pulses when
-   the order changes. */
+/* Checks for the moving interface: the star that was removed, one distinct motion
+   per department (no effect pasted across the terminal), and reduced-motion cover
+   for every animation that ships. */
 import { JSDOM } from "jsdom";
 import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const KEY = "absolute-superiority-campaign-v1";
 const html = fs.readFileSync("index.html", "utf8");
+const css = fs.readFileSync("command.css", "utf8");
 
 function boot() {
   const dom = new JSDOM(html, {
@@ -45,41 +46,73 @@ function test(name, fn) {
   console.log(`  ok   ${name}`);
 }
 
+/* Split the sheet into everything before the reduced-motion block, and the block.
+   Comments are stripped so selectors compare cleanly. */
+const stripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, "");
+const reducedAt = css.lastIndexOf("@media (prefers-reduced-motion: reduce)");
+const mainCss = stripComments(css.slice(0, reducedAt));
+const reducedCss = stripComments(css.slice(reducedAt));
+
 test("the floating star is gone from the sidebar", () => {
   const g = boot();
   assert.equal(g.w.document.querySelector(".seal"), null);
   assert.equal(g.w.document.querySelector(".sidebar-bottom .seal"), null);
   assert.ok(g.text(".sidebar-bottom").includes("SUPERIORITY IS A THEORY"));
-  assert.ok(!fs.readFileSync("command.css", "utf8").includes(".seal {"));
+  assert.ok(!css.includes(".seal {"));
   g.close();
 });
 
-test("the command terminal carries an ambient scanner layer", () => {
+test("the ambient layer ships and nothing is pasted across the interface", () => {
   const g = boot();
   assert.ok(g.w.document.querySelector(".workspace > .ambient"));
-  const css = fs.readFileSync("command.css", "utf8");
-  for (const key of [
-    "@keyframes ambientSweep",
-    "@keyframes railSweep",
-    "@keyframes topbarTrace",
-    "@keyframes radarSpin",
-    "@keyframes panelSheen",
-    "@keyframes valueBump",
-    "@keyframes ctaBreath",
-  ])
-    assert.ok(css.includes(key), `missing ${key}`);
-  // and every one of them is switched off for people who ask for less motion
-  const reduced = css.slice(css.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
-  for (const selector of [
-    ".ambient::before",
-    ".sidebar::after",
-    ".topbar::after",
-    ".workspace .map::after",
-    ".mission::after",
-    ".workspace .resource.bump .value",
-  ])
-    assert.ok(reduced.includes(selector), `${selector} is not calmed down`);
+  // The one-size-fits-all sweep is gone for good.
+  assert.equal((css.match(/sheen/g) || []).length, 0, "a sheen crept back in");
+  assert.ok(!css.includes(".workspace .panel::after"), "every panel is sheened again");
+  assert.ok(!css.includes(".workspace .primary::after,\n.workspace .outline::after"));
   g.close();
+});
+
+test("each department has its own signature motion", () => {
+  const signatures = {
+    refreshFall: "the glass refreshes",
+    railSweep: "the sidebar rail",
+    topbarTrace: "the top bar trace",
+    arrowNudge: "the end-turn arrow",
+    radarSpin: "the map radar",
+    buildLaser: "the shipyard build laser",
+    conveyor: "the production queue",
+    cardScan: "the research cards",
+    phasePass: "the loop lighting itself in order",
+    chargeBar: "the current-order button",
+    fragmentDecode: "the signal fragments",
+    dossierUncover: "the dossier",
+    stampKnock: "the hearing stamp",
+    hazardFlicker: "the chaos readout",
+    needleSway: "the reliability needle",
+  };
+  for (const [keyframe, what] of Object.entries(signatures)) {
+    assert.ok(css.includes(`@keyframes ${keyframe}`), `missing keyframe for ${what}`);
+    // Used once, by its own department — never reused somewhere else.
+    const uses = (mainCss.match(new RegExp(`animation:[^;]*\\b${keyframe}\\b`, "g")) || []).length;
+    assert.equal(uses, 1, `${keyframe} (${what}) is used ${uses} times; effects must be individual`);
+  }
+});
+
+test("every animation that ships is switched off for reduced motion", () => {
+  const missing = [];
+  // Find every selector that starts an animation outside the reduced-motion block.
+  const rule = /([^{}]+)\{([^{}]*)\}/g;
+  let match;
+  while ((match = rule.exec(mainCss))) {
+    const [, selector, body] = match;
+    if (!/animation:\s*(?!none)/.test(body)) continue;
+    for (const one of selector.split(",")) {
+      const clean = one.trim().replace(/\s+/g, " ");
+      if (!clean || clean.startsWith("@")) continue;
+      if (!reducedCss.includes(clean)) missing.push(clean);
+    }
+  }
+  assert.deepEqual(missing, [], `not calmed down: ${missing.join(" | ")}`);
 });
 
 test("resources are staggered and flash only when they move", () => {
@@ -119,4 +152,6 @@ test("the mission panel pulses when the next order changes", () => {
   g.close();
 });
 
-console.log(`${checks} motion checks passed: star removed, ambient layer, flashing meters, mission pulse.`);
+console.log(
+  `${checks} motion checks passed: star removed, per-department motion, reduced-motion cover, flashing meters, mission pulse.`,
+);

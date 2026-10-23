@@ -2398,56 +2398,46 @@ dialog .restart-grid small { color: #8ba3ad; font-size: 11px; line-height: 1.55;
 dialog .restart-grid .wide:hover:not(:disabled) small { color: #a8c6cd; }
 
 /* ============================================================================
-   AMBIENT LIFE
-   The command terminal is a machine that is always running: a scanner crossing
-   the glass, a rail of light in the sidebar, panels that arrive, numbers that
-   flash when they change. Everything here is decorative and is switched off
-   under prefers-reduced-motion at the end of this file.
+   MOTION, PER SCREEN
+   Every department has its own movement, matched to what it is. Nothing here is
+   a reused sweep: the glass refreshes, the rail walks, the shipyard builds, the
+   loop lights itself in order, the map sweeps radar, the signal decodes. All of
+   it is switched off under prefers-reduced-motion at the end of the file.
    ============================================================================ */
 
-/* ------------------------------------------------------------- global glass */
-.ambient {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
+/* ------------------------------------------------------- 0. the glass itself */
+/* A CRT refresh: one bright line falling down the terminal, and a fine raster. */
+.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 body.pub-mode .ambient { display: none; }
 .ambient::before {
   content: "";
   position: absolute;
-  inset: -45% -75%;
-  background: linear-gradient(
-    104deg,
-    transparent 41%,
-    rgba(126, 225, 230, .045) 47%,
-    rgba(150, 240, 244, .085) 50%,
-    rgba(126, 225, 230, .045) 53%,
-    transparent 59%
-  );
-  animation: ambientSweep 21s cubic-bezier(.42, 0, .58, 1) infinite;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(154, 238, 242, .2), transparent);
+  box-shadow: 0 0 18px rgba(140, 230, 236, .18);
+  animation: refreshFall 9.5s linear infinite;
 }
 .ambient::after {
   content: "";
   position: absolute;
   inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(150, 212, 222, .03) 0 1px, transparent 1px 5px),
-    radial-gradient(ellipse at 50% 0%, rgba(96, 190, 200, .06), transparent 62%);
-  animation: ambientScan 8s linear infinite;
+  background-image: repeating-linear-gradient(0deg, rgba(150, 212, 222, .026) 0 1px, transparent 1px 5px);
+  animation: rasterDrift 6.5s linear infinite;
 }
 .workspace > main { position: relative; z-index: 2; }
-@keyframes ambientSweep {
-  0% { transform: translate3d(-42%, 0, 0); }
-  60%, 100% { transform: translate3d(42%, 0, 0); }
+@keyframes refreshFall {
+  0% { top: -3%; opacity: 0; }
+  7% { opacity: 1; }
+  93% { opacity: 1; }
+  100% { top: 103%; opacity: 0; }
 }
-@keyframes ambientScan {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 0 90px, 0 0; }
-}
+@keyframes rasterDrift { from { background-position: 0 0; } to { background-position: 0 40px; } }
 
-/* ------------------------------------------------------------------ sidebar */
+/* ------------------------------------------------------------- 1. the rail */
+/* The sidebar is a powered conduit: light walks down it, and each department
+   grows a marker bar when you reach for it. */
 .sidebar { overflow: hidden; }
 .sidebar::after {
   content: "";
@@ -2455,7 +2445,7 @@ body.pub-mode .ambient { display: none; }
   left: 0;
   right: 0;
   top: 0;
-  height: 34%;
+  height: 32%;
   pointer-events: none;
   background: linear-gradient(180deg, transparent, rgba(125, 214, 218, .075) 55%, transparent);
   animation: railSweep 13s ease-in-out infinite;
@@ -2467,31 +2457,34 @@ body.pub-mode .ambient { display: none; }
   100% { transform: translateY(320%); opacity: 0; }
 }
 .sidebar nav button,
-.sidebar nav a { position: relative; overflow: hidden; }
+.sidebar nav a { position: relative; }
 .sidebar nav button::after,
 .sidebar nav a::after {
   content: "";
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(105deg, transparent 36%, rgba(168, 240, 244, .13) 50%, transparent 64%);
-  transform: translateX(-135%);
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  background: #7de0dc;
+  box-shadow: 0 0 10px rgba(125, 224, 220, .55);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform .24s cubic-bezier(.2, .8, .3, 1);
 }
 .sidebar nav button:hover::after,
 .sidebar nav a:hover::after,
-.sidebar nav button:focus-visible::after { animation: sheen .75s ease; }
+.sidebar nav button:focus-visible::after { transform: scaleY(1); }
 .sidebar nav button.active { animation: activeGlow 5.5s ease-in-out infinite; }
 @keyframes activeGlow {
   0%, 100% { box-shadow: inset 0 0 0 rgba(125, 214, 218, 0); }
   50% { box-shadow: inset 0 0 26px rgba(125, 214, 218, .09); }
 }
-@keyframes sheen {
-  from { transform: translateX(-135%); }
-  to { transform: translateX(135%); }
-}
-.sidebar .connection span { animation: livePulse 2.4s ease-in-out infinite; }
+/* The uplink lamp blinks on a step, like a link light — it does not breathe. */
+.sidebar .connection span { animation: linkBlink 3.1s steps(1, end) infinite; }
+@keyframes linkBlink { 0%, 78% { opacity: 1; } 82%, 88% { opacity: .18; } 92%, 100% { opacity: 1; } }
 
-/* -------------------------------------------------------------------- topbar */
+/* ------------------------------------------------------ 2. topbar and title */
 .topbar::after {
   content: "";
   position: absolute;
@@ -2505,10 +2498,7 @@ body.pub-mode .ambient { display: none; }
   background-repeat: no-repeat;
   animation: topbarTrace 7s linear infinite;
 }
-@keyframes topbarTrace {
-  from { background-position: -30% 0; }
-  to { background-position: 130% 0; }
-}
+@keyframes topbarTrace { from { background-position: -30% 0; } to { background-position: 130% 0; } }
 .live-dot { animation: livePulse 2.2s ease-in-out infinite; }
 @keyframes livePulse {
   0%, 100% { opacity: .5; transform: scale(.8); }
@@ -2519,136 +2509,65 @@ body.pub-mode .ambient { display: none; }
   0%, 100% { box-shadow: inset 0 0 15px rgba(89, 170, 176, .09); }
   50% { box-shadow: inset 0 0 22px rgba(89, 170, 176, .22); }
 }
-
-/* -------------------------------------------------------------- page heading */
-.page-heading h1 {
-  animation:
-    panelEnter .5s ease-out both,
-    titleGlow 7s 1s ease-in-out infinite alternate;
-}
+.page-heading h1 { animation: panelEnter .5s ease-out both, titleGlow 7s 1s ease-in-out infinite alternate; }
 #page-subtitle { animation: panelEnter .55s .07s ease-out both; }
 .turn-control { animation: panelEnter .55s .12s ease-out both; }
 @keyframes titleGlow {
   from { text-shadow: 0 7px 26px rgba(87, 171, 186, .1); }
   to { text-shadow: 0 7px 34px rgba(120, 220, 226, .3); }
 }
-#end-turn:not(:disabled) { animation: ctaBreath 3.6s ease-in-out infinite; }
+/* The end-turn arrow nudges: it is the one button that ends the cycle. */
+#end-turn span { display: inline-block; animation: arrowNudge 2.8s ease-in-out infinite; }
+@keyframes arrowNudge { 0%, 68%, 100% { transform: translateX(0); } 80% { transform: translateX(5px); } 92% { transform: translateX(0); } }
 
-/* ----------------------------------------------------------------- resources */
+/* ----------------------------------------------------- 3. the five readouts */
+/* Five different behaviours, because they are five different quantities. */
 .workspace .resource {
+  position: relative;
   animation: resourceIn .45s ease-out both;
   animation-delay: calc(var(--i, 0) * 65ms);
 }
-@keyframes resourceIn {
-  from { opacity: 0; transform: translateY(9px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes resourceIn { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+/* IP is money: a rule wipes out beneath the figure when you look at it. */
+.workspace .resource:nth-child(1) .value::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: linear-gradient(90deg, #7de0dc, rgba(125, 224, 220, 0));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .5s cubic-bezier(.2, .8, .3, 1);
 }
+.workspace .resource:nth-child(1) { overflow: visible; }
+.workspace .resource:nth-child(1):hover .value::after { transform: scaleX(1); }
+/* SP is research in progress: the label breathes while it accrues. */
+.workspace .resource:nth-child(2) .label { animation: labelBreath 5.2s ease-in-out infinite; }
+@keyframes labelBreath { 0%, 100% { opacity: .62; } 50% { opacity: 1; } }
+/* PC is authority: a status lamp that steps, it does not fade. */
+.workspace .resource:nth-child(3) .rate { animation: linkBlink 4.4s steps(1, end) infinite; }
+/* Reliability is a needle: it sways very slightly, and worse when degraded. */
+.workspace .resource:nth-child(4) .value { display: inline-block; animation: needleSway 7.5s ease-in-out infinite; }
+@keyframes needleSway { 0%, 100% { transform: rotate(-.5deg); } 50% { transform: rotate(.5deg); } }
+.workspace .resource:nth-child(4).warn .value { animation: needleShiver 1.9s ease-in-out infinite; }
+@keyframes needleShiver { 0%, 100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }
+/* Chaos is a hazard: it flickers. */
+.workspace .resource.warn .value { color: #e79a7e; }
+.workspace .resource:nth-child(5).warn .value { animation: hazardFlicker 3.6s steps(1, end) infinite; }
+@keyframes hazardFlicker { 0%, 71% { opacity: 1; } 73%, 76% { opacity: .42; } 78%, 100% { opacity: 1; } }
+/* A number that moved pops once — distinct from any idle behaviour above. */
 .workspace .resource.bump .value { animation: valueBump .6s ease-out; }
 .workspace .resource.bump .rate { animation: rateBump .6s .05s ease-out; }
 @keyframes valueBump {
-  0% { color: #c8ffe9; text-shadow: 0 0 20px rgba(140, 240, 208, .6); transform: translateY(-2px); }
-  100% { transform: translateY(0); }
+  0% { color: #c8ffe9; text-shadow: 0 0 20px rgba(140, 240, 208, .6); transform: translateY(-2px) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
 }
-@keyframes rateBump { 0% { opacity: .35; } 100% { opacity: 1; } }
+@keyframes rateBump { 0% { opacity: .3; } 100% { opacity: 1; } }
 
-/* ----------------------------------------------------- panels and containers */
-.workspace .panel,
-.workspace .alert-card {
-  position: relative;
-  animation: panelEnter .42s ease-out both;
-}
-.workspace .panel::after,
-.workspace .alert-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(104deg, transparent 43%, rgba(146, 228, 234, .05) 50%, transparent 57%);
-  transform: translateX(-125%);
-}
-.workspace .panel:hover::after,
-.workspace .alert-card:hover::after { animation: panelSheen 1.15s ease; }
-#view > * { animation: panelEnter .42s ease-out both; }
-#view > *:nth-child(2) { animation-delay: .06s; }
-#view > *:nth-child(3) { animation-delay: .12s; }
-#view > *:nth-child(4) { animation-delay: .18s; }
-#view > *:nth-child(n+5) { animation-delay: .24s; }
-@keyframes panelSheen {
-  from { transform: translateX(-125%); }
-  to { transform: translateX(125%); }
-}
-.workspace .research-card,
-.workspace .bottom-grid .panel,
-.workspace .dossier-entry,
-.workspace .hearing { transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
-.workspace .research-card:hover,
-.workspace .bottom-grid .panel:hover,
-.workspace .dossier-entry:hover {
-  transform: translateY(-3px);
-  border-color: rgba(140, 216, 220, .42);
-  box-shadow: 0 24px 58px rgba(0, 0, 0, .32);
-}
-.workspace .hearing .stamp { animation: stampPulse 2.6s ease-in-out infinite; }
-@keyframes stampPulse {
-  0%, 100% { opacity: .78; box-shadow: 0 0 0 rgba(238, 170, 137, 0); }
-  50% { opacity: 1; box-shadow: 0 0 20px rgba(238, 170, 137, .22); }
-}
-.workspace .dispatch { animation: dispatchIn .4s ease-out both; }
-.workspace .dispatch:nth-child(2) { animation-delay: .04s; }
-.workspace .dispatch:nth-child(3) { animation-delay: .08s; }
-.workspace .dispatch:nth-child(4) { animation-delay: .12s; }
-.workspace .dispatch:nth-child(n+5) { animation-delay: .16s; }
-@keyframes dispatchIn {
-  from { opacity: 0; transform: translateX(-8px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* --------------------------------------------------------------- the mission */
-.mission { position: relative; overflow: hidden; animation: panelEnter .45s ease-out both; }
-.mission::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(104deg, transparent 44%, rgba(126, 225, 230, .055) 50%, transparent 56%);
-  transform: translateX(-125%);
-  animation: panelSheen 11s linear infinite;
-}
-.mission.flash { animation: missionFlash .8s ease-out; }
-@keyframes missionFlash {
-  0% { box-shadow: 0 0 0 0 rgba(126, 225, 230, .4), 0 16px 42px rgba(0, 0, 0, .18); }
-  100% { box-shadow: 0 0 0 22px rgba(126, 225, 230, 0), 0 16px 42px rgba(0, 0, 0, .18); }
-}
-.mission-order .primary { animation: ctaBreath 3.2s ease-in-out infinite; }
-@keyframes ctaBreath {
-  0%, 100% { box-shadow: 0 7px 18px rgba(27, 109, 111, .16), 0 0 0 0 rgba(125, 215, 210, 0); }
-  50% { box-shadow: 0 7px 18px rgba(27, 109, 111, .16), 0 0 24px 2px rgba(125, 215, 210, .26); }
-}
-.phase { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
-.phase.open { animation: phaseBreath 4.8s ease-in-out infinite; }
-.phase:hover { transform: translateY(-2px); }
-@keyframes phaseBreath {
-  0%, 100% { box-shadow: inset 0 0 0 rgba(121, 208, 207, 0); }
-  50% { box-shadow: inset 0 0 20px rgba(121, 208, 207, .1); }
-}
-.mini-meter i { transition: width .55s cubic-bezier(.2, .8, .3, 1); }
-.workspace .meter i {
-  position: relative;
-  overflow: hidden;
-  transition: width .5s cubic-bezier(.2, .8, .3, 1);
-}
-.workspace .meter i::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .3), transparent);
-  transform: translateX(-100%);
-  animation: meterShimmer 2.8s linear infinite;
-}
-@keyframes meterShimmer { to { transform: translateX(100%); } }
-
-/* ------------------------------------------------------------------ the map */
+/* ------------------------------------------------------- 4. headquarters map */
+/* Radar, because it is a radar: a cone turning behind the contacts. */
 .workspace .map { position: relative; overflow: hidden; }
 .workspace .map::after {
   content: "";
@@ -2671,21 +2590,205 @@ body.pub-mode .ambient { display: none; }
 @keyframes radarSpin { to { transform: rotate(360deg); } }
 .workspace .map-node { transition: filter .2s ease; }
 .workspace .map-node:hover { filter: brightness(1.28) drop-shadow(0 0 8px rgba(150, 235, 240, .35)); }
+/* The intelligence readout types itself out. */
+.workspace .system-detail strong::after { content: "▌"; margin-left: 3px; color: #7de0dc; animation: caretBlink 1.1s steps(1, end) infinite; }
+@keyframes caretBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.workspace .grid > * { animation: panelEnter .45s ease-out both; }
+.workspace .grid > *:nth-child(2) { animation-delay: .08s; }
+/* The signal brief wipes in from the left, like a transmission arriving. */
+.workspace .signal-brief { animation: signalWipe .7s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes signalWipe { from { clip-path: inset(0 100% 0 0); opacity: .3; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
+.workspace .pub-dispatch { animation: panelEnter .5s .18s ease-out both; }
+/* Balance of power: the bars breathe where they sit; nothing travels along them. */
+.workspace .status-body .meter i { transition: width .5s cubic-bezier(.2, .8, .3, 1); animation: fillBreathe 4.6s ease-in-out infinite; }
+@keyframes fillBreathe { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.28); } }
+.workspace .resource:nth-child(1) .value { position: relative; }
 
-/* -------------------------------------------------------- buttons and toast */
-.workspace .primary,
-.workspace .outline { position: relative; overflow: hidden; }
-.workspace .primary::after,
-.workspace .outline::after {
+/* --------------------------------------------------- 5. the research cards */
+/* Cards unfold from their spine, the glyph turns when you consider it, and a
+   scan line drops vertically — a different axis from everything else here. */
+.workspace .research-card {
+  position: relative;
+  overflow: hidden;
+  transform-origin: top center;
+  animation: cardUnfold .5s cubic-bezier(.2, .85, .3, 1) backwards;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+.workspace .cards .research-card:nth-child(2) { animation-delay: .09s; }
+.workspace .cards .research-card:nth-child(3) { animation-delay: .18s; }
+@keyframes cardUnfold {
+  from { opacity: 0; transform: perspective(700px) rotateX(-9deg) translateY(-10px); }
+  to { opacity: 1; transform: perspective(700px) rotateX(0) translateY(0); }
+}
+.workspace .research-icon { display: inline-block; transition: transform .55s cubic-bezier(.2, .85, .3, 1.2); }
+.workspace .research-card:hover .research-icon { transform: rotate(-9deg) scale(1.1); }
+.workspace .research-card:hover { transform: translateY(-3px); border-color: rgba(140, 216, 220, .42); }
+.workspace .research-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -45%;
+  height: 45%;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(146, 228, 234, .075), transparent);
+}
+.workspace .research-card:hover::after { animation: cardScan 1.05s ease; }
+@keyframes cardScan { from { top: -45%; } to { top: 105%; } }
+
+/* Report panels simply fade in; the containers around them do the moving. */
+.workspace .report { animation: fadeIn .5s ease-out both; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* --------------------------------------------------------- 6. the shipyard */
+/* A build laser crosses the hull while it is on the line. */
+.workspace .ship-art { position: relative; overflow: hidden; }
+.workspace .ship-art::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(158, 240, 224, .6), transparent);
+  box-shadow: 0 0 14px rgba(158, 240, 224, .35);
+  animation: buildLaser 5.5s ease-in-out infinite;
+}
+@keyframes buildLaser {
+  0% { left: -4%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { left: 104%; opacity: 0; }
+}
+/* The queue bar is a conveyor: a hatch travels along it. */
+.workspace .production-body .meter i {
+  position: relative;
+  overflow: hidden;
+  transition: width .5s cubic-bezier(.2, .8, .3, 1);
+}
+.workspace .production-body .meter i::after {
   content: "";
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background: linear-gradient(105deg, transparent 38%, rgba(220, 252, 255, .17) 50%, transparent 62%);
-  transform: translateX(-135%);
+  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, .2) 0 5px, transparent 5px 12px);
+  animation: conveyor 1.4s linear infinite;
 }
-.workspace .primary:hover:not(:disabled)::after,
-.workspace .outline:hover:not(:disabled)::after { animation: sheen .8s ease; }
+@keyframes conveyor { from { background-position: 0 0; } to { background-position: 24px 0; } }
+.workspace .production-body { animation: slideFromLeft .5s ease-out both; }
+@keyframes slideFromLeft { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: translateX(0); } }
+.workspace .bottom-grid > * { animation: panelEnter .45s ease-out both; }
+.workspace .bottom-grid > *:nth-child(2) { animation-delay: .1s; }
+
+/* ------------------------------------------------------------ 7. the bridge */
+/* The engagement tag blinks while the fight is live; ready weapons have a lamp. */
+.workspace .bridge-layout > * { animation: panelEnter .45s ease-out both; }
+.workspace .bridge-layout > *:nth-child(2) { animation-delay: .08s; }
+.workspace .bridge-layout .panel-head .tag { animation: liveTag 2.3s steps(1, end) infinite; }
+@keyframes liveTag { 0%, 62% { opacity: 1; } 66%, 72% { opacity: .35; } 76%, 100% { opacity: 1; } }
+.workspace .weapon-rack { animation: panelEnter .5s .12s ease-out both; }
+.workspace .weapon-button:not(:disabled) span { display: inline-block; animation: readyLamp 3.4s ease-in-out infinite; }
+@keyframes readyLamp { 0%, 100% { filter: drop-shadow(0 0 0 rgba(150, 235, 220, 0)); } 50% { filter: drop-shadow(0 0 9px rgba(150, 235, 220, .55)); } }
+.workspace .order-button.selected { animation: selectedHold 3.8s ease-in-out infinite; }
+@keyframes selectedHold {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(125, 214, 218, 0); }
+  50% { box-shadow: inset 0 0 18px rgba(125, 214, 218, .13); }
+}
+
+/* ------------------------------------------------------- 8. the dispatches */
+/* Records file themselves in from the left; the newest one keeps a live cursor. */
+.workspace .dispatch { animation: dispatchIn .4s ease-out both; }
+.workspace .dispatch:nth-child(2) { animation-delay: .04s; }
+.workspace .dispatch:nth-child(3) { animation-delay: .08s; }
+.workspace .dispatch:nth-child(4) { animation-delay: .12s; }
+.workspace .dispatch:nth-child(n+5) { animation-delay: .16s; }
+@keyframes dispatchIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+.workspace .dispatch:first-child time { animation: caretBlink 1.2s steps(1, end) infinite; }
+/* The dossier reveals downward, like a page being uncovered. */
+.workspace .dossier-entry { animation: dossierUncover .55s cubic-bezier(.2, .8, .3, 1) both; }
+.workspace .dossier-grid .dossier-entry:nth-child(2) { animation-delay: .06s; }
+.workspace .dossier-grid .dossier-entry:nth-child(3) { animation-delay: .12s; }
+.workspace .dossier-grid .dossier-entry:nth-child(4) { animation-delay: .18s; }
+.workspace .dossier-grid .dossier-entry:nth-child(n+5) { animation-delay: .24s; }
+@keyframes dossierUncover { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+.workspace .dossier-entry { transition: transform .22s ease, border-color .22s ease; }
+.workspace .dossier-entry:hover { transform: translateX(3px); border-left-color: #7de6e0; }
+
+/* ---------------------------------------------------------- 9. the mission */
+/* The loop lights itself in order, so the sequence is visible: ASSESS → BUILD →
+   RESEARCH → ENGAGE → LISTEN → ADVANCE, then round again. */
+.mission { position: relative; overflow: hidden; animation: panelEnter .45s ease-out both; }
+.mission.flash { animation: missionFlash .8s ease-out; }
+@keyframes missionFlash {
+  0% { box-shadow: 0 0 0 0 rgba(126, 225, 230, .4), 0 16px 42px rgba(0, 0, 0, .18); }
+  100% { box-shadow: 0 0 0 22px rgba(126, 225, 230, 0), 0 16px 42px rgba(0, 0, 0, .18); }
+}
+.phase { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.phase:hover { transform: translateY(-2px); }
+.phase-strip .phase { animation: phasePass 7.8s linear infinite; }
+.phase-strip .phase:nth-child(2) { animation-delay: 1.3s; }
+.phase-strip .phase:nth-child(3) { animation-delay: 2.6s; }
+.phase-strip .phase:nth-child(4) { animation-delay: 3.9s; }
+.phase-strip .phase:nth-child(5) { animation-delay: 5.2s; }
+.phase-strip .phase:nth-child(6) { animation-delay: 6.5s; }
+@keyframes phasePass {
+  0% { box-shadow: inset 0 0 0 rgba(121, 208, 207, 0); }
+  5% { box-shadow: inset 0 0 22px rgba(121, 208, 207, .22); }
+  16%, 100% { box-shadow: inset 0 0 0 rgba(121, 208, 207, 0); }
+}
+/* The order button charges and releases. */
+.mission-order .primary { position: relative; overflow: hidden; }
+.mission-order .primary::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(196, 255, 250, .95), rgba(196, 255, 250, 0));
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: chargeBar 3.6s ease-in-out infinite;
+}
+@keyframes chargeBar {
+  0% { transform: scaleX(0); opacity: .95; }
+  62% { transform: scaleX(1); opacity: .95; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+.mini-meter i { transition: width .55s cubic-bezier(.2, .8, .3, 1); }
+
+/* ---------------------------------------------------------- 10. the hearing */
+/* A ruling is overdue: the card's edge pulses red and the stamp knocks. */
+.workspace .hearing { animation: panelEnter .45s ease-out both, hearingEdge 3.4s ease-in-out infinite; }
+@keyframes hearingEdge {
+  0%, 100% { box-shadow: 0 18px 48px rgba(0, 0, 0, .2), 0 0 0 rgba(232, 138, 110, 0); }
+  50% { box-shadow: 0 18px 48px rgba(0, 0, 0, .2), 0 0 26px rgba(232, 138, 110, .16); }
+}
+.workspace .hearing .stamp { animation: stampKnock 3.4s ease-in-out infinite; }
+@keyframes stampKnock {
+  0%, 72%, 100% { transform: rotate(-2.5deg) scale(1); }
+  78% { transform: rotate(-2.5deg) scale(1.09); }
+  84% { transform: rotate(-2.5deg) scale(1); }
+}
+.workspace .alert-card { animation: panelEnter .45s ease-out both, amberBreathe 7.5s ease-in-out infinite; }
+@keyframes amberBreathe {
+  0%, 100% { box-shadow: 0 18px 48px rgba(0, 0, 0, .21), inset 0 1px rgba(255, 255, 255, .03); }
+  50% { box-shadow: 0 18px 48px rgba(0, 0, 0, .21), inset 0 1px rgba(255, 255, 255, .03), 0 0 30px rgba(192, 153, 101, .12); }
+}
+
+/* ------------------------------------------------------ 11. signal and coach */
+/* Fragments decode from left to right, one after another. */
+.signal-fragment { animation: fragmentDecode .6s cubic-bezier(.2, .8, .3, 1) both; }
+.signal-fragment:nth-child(2) { animation-delay: .12s; }
+.signal-fragment:nth-child(3) { animation-delay: .24s; }
+@keyframes fragmentDecode { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+/* The coach's step title is being dictated to you. */
+.coach-title::after { content: "▌"; margin-left: 3px; color: #7de0dc; animation: caretBlink 1.15s steps(1, end) infinite; }
+
+/* ------------------------------------------------- 12. buttons, toast, modal */
+/* Buttons lift and brighten. Nothing travels across them. */
+.workspace .primary,
+.workspace .outline { transition: transform .18s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease; }
+.workspace .primary:hover:not(:disabled),
+.workspace .outline:hover:not(:disabled) { transform: translateY(-2px); }
 #command-toast.visible { animation: toastRise .42s cubic-bezier(.2, .9, .3, 1.15); }
 @keyframes toastRise {
   from { opacity: 0; transform: translate(-50%, 14px) scale(.96); }
@@ -2697,26 +2800,11 @@ dialog { animation: dialogIn .34s cubic-bezier(.2, .9, .3, 1.08) both; }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ------------------------------------------------- briefing, coach, dossiers */
-.dossier-grid .dossier-entry { animation: panelEnter .45s ease-out both; }
-.dossier-grid .dossier-entry:nth-child(2) { animation-delay: .05s; }
-.dossier-grid .dossier-entry:nth-child(3) { animation-delay: .1s; }
-.dossier-grid .dossier-entry:nth-child(4) { animation-delay: .15s; }
-.dossier-grid .dossier-entry:nth-child(n+5) { animation-delay: .2s; }
-.signal-fragment { animation: panelEnter .45s ease-out both; }
-.signal-fragment:nth-child(2) { animation-delay: .07s; }
-.signal-fragment:nth-child(3) { animation-delay: .14s; }
-.tour-coach { animation: coach-in .45s cubic-bezier(.2, .9, .3, 1) both; }
-.coach-actions .primary { animation: ctaBreath 3s ease-in-out infinite; }
-.prologue-dots i.on { animation: livePulse 2.6s ease-in-out infinite; }
-
 /* --------------------------------------------------- everything, calmed down */
 @media (prefers-reduced-motion: reduce) {
   .ambient::before,
   .ambient::after,
   .sidebar::after,
-  .sidebar nav button::after,
-  .sidebar nav a::after,
   .sidebar nav button.active,
   .sidebar .connection span,
   .topbar::after,
@@ -2725,37 +2813,80 @@ dialog { animation: dialogIn .34s cubic-bezier(.2, .9, .3, 1.08) both; }
   .page-heading h1,
   #page-subtitle,
   .turn-control,
-  #end-turn:not(:disabled),
+  #end-turn span,
   .workspace .resource,
+  .workspace .resource:nth-child(2) .label,
+  .workspace .resource:nth-child(3) .rate,
+  .workspace .resource:nth-child(4) .value,
+  .workspace .resource:nth-child(4).warn .value,
+  .workspace .resource:nth-child(5).warn .value,
   .workspace .resource.bump .value,
   .workspace .resource.bump .rate,
-  .workspace .panel,
-  .workspace .alert-card,
-  .workspace .panel::after,
-  .workspace .alert-card::after,
-  #view > *,
-  .workspace .hearing .stamp,
-  .workspace .dispatch,
-  .mission,
-  .mission::after,
-  .mission.flash,
-  .mission-order .primary,
-  .phase.open,
-  .workspace .meter i::after,
   .workspace .map::after,
-  .workspace .primary::after,
-  .workspace .outline::after,
-  #command-toast.visible,
-  dialog,
-  .dossier-grid .dossier-entry,
+  .workspace .system-detail strong::after,
+  .workspace .grid > *,
+  .workspace .signal-brief,
+  .workspace .pub-dispatch,
+  .workspace .status-body .meter i,
+  .workspace .report,
+  .workspace .research-card,
+  .workspace .research-card::after,
+  .workspace .ship-art::after,
+  .workspace .production-body,
+  .workspace .production-body .meter i::after,
+  .workspace .bottom-grid > *,
+  .workspace .bridge-layout > *,
+  .workspace .bridge-layout .panel-head .tag,
+  .workspace .weapon-rack,
+  .workspace .weapon-button:not(:disabled) span,
+  .workspace .order-button.selected,
+  .workspace .dispatch,
+  .workspace .dispatch:first-child time,
+  .workspace .dossier-entry,
+  .mission,
+  .mission.flash,
+  .phase-strip .phase,
+  .mission-order .primary::after,
+  .workspace .hearing,
+  .workspace .hearing .stamp,
+  .workspace .alert-card,
   .signal-fragment,
+  .coach-title::after,
+  .workspace .research-card:hover::after,
+  .signal-page,
+  .workspace .node-selection,
+  #command-toast.visible,
+  #command-toast.is-gag,
+  dialog,
+  .workspace .tactical-plot::after,
+  .workspace .tactical-ship,
+  .workspace .map-node .node-selection,
+  .workspace .map-node-anomaly .anomaly-ring,
+  .workspace .route-line,
+  .workspace .nebula-cloud,
+  .workspace .map-star,
+  .workspace .fleet-marker,
+  .workspace .signal-brief-orbit::before,
+  .workspace .signal-brief-orbit::after,
+  .signal-orbit,
+  .signal-vector,
+  .signal-pulse,
+  .signal-star-core,
+  .console-dot,
+  .console-wave i,
+  .torpedo-trace,
+  .prologue::before,
+  .prologue-inner,
   .tour-coach,
-  .coach-actions .primary,
-  .prologue-dots i.on {
+  .tour-target {
     animation: none !important;
   }
   .workspace .research-card:hover,
-  .workspace .bottom-grid .panel:hover,
   .workspace .dossier-entry:hover,
+  .workspace .primary:hover:not(:disabled),
+  .workspace .outline:hover:not(:disabled),
   .phase:hover { transform: none; }
+  .workspace .signal-brief,
+  .workspace .dossier-entry,
+  .signal-fragment { clip-path: none; }
 }
