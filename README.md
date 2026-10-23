@@ -2,6 +2,10 @@
 
 An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The campaign now opens with a five-page **introduction**, teaches itself through an eleven-step **tutorial coach**, and keeps a **mission panel** on every screen that names the next order — so the loop is legible before it is playable. The whole background is drawn from the themes of **Isaac Asimov’s stories**: an empire whose fall has become arithmetic, machines that cannot escape their own directives, one question asked for ten thousand years, and a night that comes once every 2,049 years. It is an original homage, not an adaptation — no passage is copied, and the full debt is itemised in the Dispatches dossier. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
 
+## The terminal is never still
+
+The command interface is a running machine, not a form. A scanner crosses the glass every twenty-one seconds, a rail of light walks the sidebar, a trace runs the length of the top bar, and the strategic map has a radar cone sweeping behind the contacts. Panels arrive in sequence rather than appearing all at once, cards lift and take a sheen on hover, meters shimmer while they fill, the current-order button breathes, and **every resource number flashes once when it changes** — so a cycle's cost is visible without reading the report. When the next order changes, the mission panel pulses. Every one of these is switched off under `prefers-reduced-motion`.
+
 ## First ten minutes
 
 1. **The introduction** opens on load: five short pages — the Calculus, the commander the model cannot hold, the Directorate and its three directives, the Quiet Array, and your orders. Every page can be skipped; it can be replayed from the `?` briefing or Dispatches.
@@ -44,6 +48,7 @@ node tools/campaign.mjs
 node tools/campaign-edge.mjs
 node tools/story.mjs
 node tools/tutorial.mjs
+node tools/motion.mjs
 node tools/smoke.mjs
 node tools/pub-tutorial.mjs
 node tools/apicheck.mjs

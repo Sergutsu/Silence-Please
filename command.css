@@ -43,6 +43,7 @@ a:focus-visible {
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
+  z-index: 3;
   width: 236px;
   background: var(--dark);
   color: #a1aaa8;
@@ -133,17 +134,6 @@ nav b {
   margin-top: auto;
   padding-top: 35px;
   text-align: center;
-}
-.seal {
-  font-size: 48px;
-  color: #60716a;
-  border: 1px solid #465a53;
-  outline: 1px solid #344940;
-  outline-offset: 5px;
-  border-radius: 50%;
-  width: 69px;
-  height: 69px;
-  margin: 0 auto 25px;
 }
 .sidebar-bottom p {
   font: 9px/1.9 monospace;
@@ -1287,7 +1277,6 @@ body {
 .sidebar .nav-divider { background: rgba(139, 176, 189, .15); margin: 18px 10px 10px; }
 .sidebar .annex-note { color: #5e8284; }
 .sidebar-bottom { padding-top: 22px; }
-.sidebar-bottom .seal { display: grid; place-items: center; color: #7dc2c7; border-color: rgba(110, 181, 190, .38); outline-color: rgba(110, 181, 190, .14); box-shadow: 0 0 34px rgba(73, 177, 183, .1); }
 .sidebar-bottom p { color: #6d8b97; }
 .sidebar-bottom strong { color: #b5d8d9; }
 .sidebar-bottom .connection { border-color: rgba(139, 176, 189, .15); color: #6d8995; }
@@ -2407,3 +2396,366 @@ dialog .restart-grid .wide {
 dialog .restart-grid strong { color: #e2f1f4; font-size: 13px; letter-spacing: .2px; }
 dialog .restart-grid small { color: #8ba3ad; font-size: 11px; line-height: 1.55; }
 dialog .restart-grid .wide:hover:not(:disabled) small { color: #a8c6cd; }
+
+/* ============================================================================
+   AMBIENT LIFE
+   The command terminal is a machine that is always running: a scanner crossing
+   the glass, a rail of light in the sidebar, panels that arrive, numbers that
+   flash when they change. Everything here is decorative and is switched off
+   under prefers-reduced-motion at the end of this file.
+   ============================================================================ */
+
+/* ------------------------------------------------------------- global glass */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+body.pub-mode .ambient { display: none; }
+.ambient::before {
+  content: "";
+  position: absolute;
+  inset: -45% -75%;
+  background: linear-gradient(
+    104deg,
+    transparent 41%,
+    rgba(126, 225, 230, .045) 47%,
+    rgba(150, 240, 244, .085) 50%,
+    rgba(126, 225, 230, .045) 53%,
+    transparent 59%
+  );
+  animation: ambientSweep 21s cubic-bezier(.42, 0, .58, 1) infinite;
+}
+.ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(150, 212, 222, .03) 0 1px, transparent 1px 5px),
+    radial-gradient(ellipse at 50% 0%, rgba(96, 190, 200, .06), transparent 62%);
+  animation: ambientScan 8s linear infinite;
+}
+.workspace > main { position: relative; z-index: 2; }
+@keyframes ambientSweep {
+  0% { transform: translate3d(-42%, 0, 0); }
+  60%, 100% { transform: translate3d(42%, 0, 0); }
+}
+@keyframes ambientScan {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 90px, 0 0; }
+}
+
+/* ------------------------------------------------------------------ sidebar */
+.sidebar { overflow: hidden; }
+.sidebar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 34%;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(125, 214, 218, .075) 55%, transparent);
+  animation: railSweep 13s ease-in-out infinite;
+}
+@keyframes railSweep {
+  0% { transform: translateY(-110%); opacity: 0; }
+  14% { opacity: 1; }
+  86% { opacity: 1; }
+  100% { transform: translateY(320%); opacity: 0; }
+}
+.sidebar nav button,
+.sidebar nav a { position: relative; overflow: hidden; }
+.sidebar nav button::after,
+.sidebar nav a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 36%, rgba(168, 240, 244, .13) 50%, transparent 64%);
+  transform: translateX(-135%);
+}
+.sidebar nav button:hover::after,
+.sidebar nav a:hover::after,
+.sidebar nav button:focus-visible::after { animation: sheen .75s ease; }
+.sidebar nav button.active { animation: activeGlow 5.5s ease-in-out infinite; }
+@keyframes activeGlow {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(125, 214, 218, 0); }
+  50% { box-shadow: inset 0 0 26px rgba(125, 214, 218, .09); }
+}
+@keyframes sheen {
+  from { transform: translateX(-135%); }
+  to { transform: translateX(135%); }
+}
+.sidebar .connection span { animation: livePulse 2.4s ease-in-out infinite; }
+
+/* -------------------------------------------------------------------- topbar */
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(140, 232, 226, .95), transparent);
+  background-size: 26% 100%;
+  background-repeat: no-repeat;
+  animation: topbarTrace 7s linear infinite;
+}
+@keyframes topbarTrace {
+  from { background-position: -30% 0; }
+  to { background-position: 130% 0; }
+}
+.live-dot { animation: livePulse 2.2s ease-in-out infinite; }
+@keyframes livePulse {
+  0%, 100% { opacity: .5; transform: scale(.8); }
+  50% { opacity: 1; transform: scale(1.18); }
+}
+.commander .avatar { animation: avatarBreath 6s ease-in-out infinite; }
+@keyframes avatarBreath {
+  0%, 100% { box-shadow: inset 0 0 15px rgba(89, 170, 176, .09); }
+  50% { box-shadow: inset 0 0 22px rgba(89, 170, 176, .22); }
+}
+
+/* -------------------------------------------------------------- page heading */
+.page-heading h1 {
+  animation:
+    panelEnter .5s ease-out both,
+    titleGlow 7s 1s ease-in-out infinite alternate;
+}
+#page-subtitle { animation: panelEnter .55s .07s ease-out both; }
+.turn-control { animation: panelEnter .55s .12s ease-out both; }
+@keyframes titleGlow {
+  from { text-shadow: 0 7px 26px rgba(87, 171, 186, .1); }
+  to { text-shadow: 0 7px 34px rgba(120, 220, 226, .3); }
+}
+#end-turn:not(:disabled) { animation: ctaBreath 3.6s ease-in-out infinite; }
+
+/* ----------------------------------------------------------------- resources */
+.workspace .resource {
+  animation: resourceIn .45s ease-out both;
+  animation-delay: calc(var(--i, 0) * 65ms);
+}
+@keyframes resourceIn {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.workspace .resource.bump .value { animation: valueBump .6s ease-out; }
+.workspace .resource.bump .rate { animation: rateBump .6s .05s ease-out; }
+@keyframes valueBump {
+  0% { color: #c8ffe9; text-shadow: 0 0 20px rgba(140, 240, 208, .6); transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+@keyframes rateBump { 0% { opacity: .35; } 100% { opacity: 1; } }
+
+/* ----------------------------------------------------- panels and containers */
+.workspace .panel,
+.workspace .alert-card {
+  position: relative;
+  animation: panelEnter .42s ease-out both;
+}
+.workspace .panel::after,
+.workspace .alert-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(104deg, transparent 43%, rgba(146, 228, 234, .05) 50%, transparent 57%);
+  transform: translateX(-125%);
+}
+.workspace .panel:hover::after,
+.workspace .alert-card:hover::after { animation: panelSheen 1.15s ease; }
+#view > * { animation: panelEnter .42s ease-out both; }
+#view > *:nth-child(2) { animation-delay: .06s; }
+#view > *:nth-child(3) { animation-delay: .12s; }
+#view > *:nth-child(4) { animation-delay: .18s; }
+#view > *:nth-child(n+5) { animation-delay: .24s; }
+@keyframes panelSheen {
+  from { transform: translateX(-125%); }
+  to { transform: translateX(125%); }
+}
+.workspace .research-card,
+.workspace .bottom-grid .panel,
+.workspace .dossier-entry,
+.workspace .hearing { transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.workspace .research-card:hover,
+.workspace .bottom-grid .panel:hover,
+.workspace .dossier-entry:hover {
+  transform: translateY(-3px);
+  border-color: rgba(140, 216, 220, .42);
+  box-shadow: 0 24px 58px rgba(0, 0, 0, .32);
+}
+.workspace .hearing .stamp { animation: stampPulse 2.6s ease-in-out infinite; }
+@keyframes stampPulse {
+  0%, 100% { opacity: .78; box-shadow: 0 0 0 rgba(238, 170, 137, 0); }
+  50% { opacity: 1; box-shadow: 0 0 20px rgba(238, 170, 137, .22); }
+}
+.workspace .dispatch { animation: dispatchIn .4s ease-out both; }
+.workspace .dispatch:nth-child(2) { animation-delay: .04s; }
+.workspace .dispatch:nth-child(3) { animation-delay: .08s; }
+.workspace .dispatch:nth-child(4) { animation-delay: .12s; }
+.workspace .dispatch:nth-child(n+5) { animation-delay: .16s; }
+@keyframes dispatchIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --------------------------------------------------------------- the mission */
+.mission { position: relative; overflow: hidden; animation: panelEnter .45s ease-out both; }
+.mission::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(104deg, transparent 44%, rgba(126, 225, 230, .055) 50%, transparent 56%);
+  transform: translateX(-125%);
+  animation: panelSheen 11s linear infinite;
+}
+.mission.flash { animation: missionFlash .8s ease-out; }
+@keyframes missionFlash {
+  0% { box-shadow: 0 0 0 0 rgba(126, 225, 230, .4), 0 16px 42px rgba(0, 0, 0, .18); }
+  100% { box-shadow: 0 0 0 22px rgba(126, 225, 230, 0), 0 16px 42px rgba(0, 0, 0, .18); }
+}
+.mission-order .primary { animation: ctaBreath 3.2s ease-in-out infinite; }
+@keyframes ctaBreath {
+  0%, 100% { box-shadow: 0 7px 18px rgba(27, 109, 111, .16), 0 0 0 0 rgba(125, 215, 210, 0); }
+  50% { box-shadow: 0 7px 18px rgba(27, 109, 111, .16), 0 0 24px 2px rgba(125, 215, 210, .26); }
+}
+.phase { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.phase.open { animation: phaseBreath 4.8s ease-in-out infinite; }
+.phase:hover { transform: translateY(-2px); }
+@keyframes phaseBreath {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(121, 208, 207, 0); }
+  50% { box-shadow: inset 0 0 20px rgba(121, 208, 207, .1); }
+}
+.mini-meter i { transition: width .55s cubic-bezier(.2, .8, .3, 1); }
+.workspace .meter i {
+  position: relative;
+  overflow: hidden;
+  transition: width .5s cubic-bezier(.2, .8, .3, 1);
+}
+.workspace .meter i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .3), transparent);
+  transform: translateX(-100%);
+  animation: meterShimmer 2.8s linear infinite;
+}
+@keyframes meterShimmer { to { transform: translateX(100%); } }
+
+/* ------------------------------------------------------------------ the map */
+.workspace .map { position: relative; overflow: hidden; }
+.workspace .map::after {
+  content: "";
+  position: absolute;
+  top: -35%;
+  left: -35%;
+  width: 170%;
+  height: 170%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: conic-gradient(
+    from 0deg,
+    rgba(126, 225, 230, 0) 0deg,
+    rgba(126, 225, 230, .1) 22deg,
+    rgba(160, 245, 248, .045) 44deg,
+    rgba(126, 225, 230, 0) 74deg
+  );
+  animation: radarSpin 14s linear infinite;
+}
+@keyframes radarSpin { to { transform: rotate(360deg); } }
+.workspace .map-node { transition: filter .2s ease; }
+.workspace .map-node:hover { filter: brightness(1.28) drop-shadow(0 0 8px rgba(150, 235, 240, .35)); }
+
+/* -------------------------------------------------------- buttons and toast */
+.workspace .primary,
+.workspace .outline { position: relative; overflow: hidden; }
+.workspace .primary::after,
+.workspace .outline::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(220, 252, 255, .17) 50%, transparent 62%);
+  transform: translateX(-135%);
+}
+.workspace .primary:hover:not(:disabled)::after,
+.workspace .outline:hover:not(:disabled)::after { animation: sheen .8s ease; }
+#command-toast.visible { animation: toastRise .42s cubic-bezier(.2, .9, .3, 1.15); }
+@keyframes toastRise {
+  from { opacity: 0; transform: translate(-50%, 14px) scale(.96); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+dialog { animation: dialogIn .34s cubic-bezier(.2, .9, .3, 1.08) both; }
+@keyframes dialogIn {
+  from { opacity: 0; transform: translateY(16px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ------------------------------------------------- briefing, coach, dossiers */
+.dossier-grid .dossier-entry { animation: panelEnter .45s ease-out both; }
+.dossier-grid .dossier-entry:nth-child(2) { animation-delay: .05s; }
+.dossier-grid .dossier-entry:nth-child(3) { animation-delay: .1s; }
+.dossier-grid .dossier-entry:nth-child(4) { animation-delay: .15s; }
+.dossier-grid .dossier-entry:nth-child(n+5) { animation-delay: .2s; }
+.signal-fragment { animation: panelEnter .45s ease-out both; }
+.signal-fragment:nth-child(2) { animation-delay: .07s; }
+.signal-fragment:nth-child(3) { animation-delay: .14s; }
+.tour-coach { animation: coach-in .45s cubic-bezier(.2, .9, .3, 1) both; }
+.coach-actions .primary { animation: ctaBreath 3s ease-in-out infinite; }
+.prologue-dots i.on { animation: livePulse 2.6s ease-in-out infinite; }
+
+/* --------------------------------------------------- everything, calmed down */
+@media (prefers-reduced-motion: reduce) {
+  .ambient::before,
+  .ambient::after,
+  .sidebar::after,
+  .sidebar nav button::after,
+  .sidebar nav a::after,
+  .sidebar nav button.active,
+  .sidebar .connection span,
+  .topbar::after,
+  .live-dot,
+  .commander .avatar,
+  .page-heading h1,
+  #page-subtitle,
+  .turn-control,
+  #end-turn:not(:disabled),
+  .workspace .resource,
+  .workspace .resource.bump .value,
+  .workspace .resource.bump .rate,
+  .workspace .panel,
+  .workspace .alert-card,
+  .workspace .panel::after,
+  .workspace .alert-card::after,
+  #view > *,
+  .workspace .hearing .stamp,
+  .workspace .dispatch,
+  .mission,
+  .mission::after,
+  .mission.flash,
+  .mission-order .primary,
+  .phase.open,
+  .workspace .meter i::after,
+  .workspace .map::after,
+  .workspace .primary::after,
+  .workspace .outline::after,
+  #command-toast.visible,
+  dialog,
+  .dossier-grid .dossier-entry,
+  .signal-fragment,
+  .tour-coach,
+  .coach-actions .primary,
+  .prologue-dots i.on {
+    animation: none !important;
+  }
+  .workspace .research-card:hover,
+  .workspace .bottom-grid .panel:hover,
+  .workspace .dossier-entry:hover,
+  .phase:hover { transform: none; }
+}

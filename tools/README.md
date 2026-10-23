@@ -31,6 +31,7 @@ The pub harness boots from `index.html` (the pub is a department of the command 
 | `campaign.mjs` | Basic DOM integration: authorize, test, certify, deploy, pause, fight, advance production, select a system, and reset. Requires jsdom. |
 | `campaign-edge.mjs` | Campaign policy checks: sortie limits, revision hearings, mutiny, funding shortfalls, save/reload, migration, malformed archives, safe dispatch rendering, and complete standardization/synergy victories from the starting economy. Requires jsdom. |
 | `story.mjs` | The Long Question integration: map contact, three-stage decoding, both response branches, first-contact ending, Easter-egg rewards, cycle gag, and old-save migration. Requires jsdom. |
+| `motion.mjs` | 4 checks on the moving interface: the decorative star is gone from the sidebar, the ambient layer and its keyframes ship (and are all disabled under `prefers-reduced-motion`), the resource meters stagger and flash only for values that actually moved, and the mission panel pulses when the next order changes. Requires jsdom. |
 | `tutorial.mjs` | The campaign briefing: the five-page introduction, the eleven-step tutorial coach walked end to end, the mission panel's next-order rules and its jump buttons, the end-of-cycle report, and migration for archives that predate the briefing. Requires jsdom. |
 
 Run from the repository root. These tools don't change the campaign archive in your real browser.

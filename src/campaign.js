@@ -165,7 +165,9 @@
           "'": "&#39;",
         })[char],
     );
-  let s = fresh(),
+  let lastResources = null,
+    lastOrder = null,
+    s = fresh(),
     view = location.hash === "#research" ? "research" : location.hash === "#signal" ? "signal" : location.hash === "#white-hart" ? "white-hart" : "headquarters",
     selected = location.hash === "#signal" ? 8 : location.hash === "#white-hart" ? 7 : 2,
     toastTimer,
@@ -702,6 +704,12 @@
     const root = $("mission");
     if (!root) return;
     const order = nextOrder();
+    if (lastOrder !== null && lastOrder !== order.title) {
+      root.classList.remove("flash");
+      void root.offsetWidth; // restart the pulse when the order changes
+      root.classList.add("flash");
+    }
+    lastOrder = order.title;
     const strip = phases()
       .map(
         (phase) =>
@@ -792,12 +800,16 @@
         "warn",
       ],
     ];
+    // Numbers that moved since the last render flash once, so a cycle's cost is legible.
+    const moved = (index, value) =>
+      Array.isArray(lastResources) && lastResources[index] !== value;
     $("resources").innerHTML = rows
       .map(
-        (r) =>
-          `<div class="resource ${r[4]}"><div class="label">${r[0]}</div><div class="value">${r[1]} <small>${r[2]}</small></div><div class="rate">${r[3]}</div></div>`,
+        (r, i) =>
+          `<div class="resource ${r[4]}${moved(i, r[1]) ? " bump" : ""}" style="--i:${i}"><div class="label">${r[0]}</div><div class="value">${r[1]} <small>${r[2]}</small></div><div class="rate">${r[3]}</div></div>`,
       )
       .join("");
+    lastResources = rows.map((r) => r[1]);
     $("cycle").innerHTML =
       `TURN ${String(s.turn).padStart(3, "0")} <small>/ 024</small>`;
     $("end-turn").disabled = !!s.ending || !!s.battle || !!s.hearings.length;
