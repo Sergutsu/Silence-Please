@@ -9,6 +9,8 @@ An offline retro-futurist strategy game with **The White Hart** as its officers�
 3. **The mission panel** stays after the tutorial. It shows the current order with the reason for it, a button that jumps to the right department, the six-phase loop strip (ASSESS · BUILD · RESEARCH · ENGAGE · LISTEN · ADVANCE) with each phase marked done / open / blocked, and three meters: enemy vessels remaining, cycles left, and unrest.
 4. **The cycle report** lands after every *End turn* and lists exactly what the cycle paid and cost — +40 IP, +15 SP, +3 PC, capital integrity, reliability, chaos, enemy strength — then repeats the next order.
 
+5. **Restart, at any time.** The `⟲` button in the top bar opens three separate switches, each with what it does spelled out: **replay the introduction** (the five pages, from the top), **restart the tutorial** (the coach returns to step 1 and clears its marks; the campaign carries on exactly as it is), and **start a new campaign** (wipes the archive, begins again at cycle 012 — introduction included — after a confirmation). The same three are reachable from the `?` briefing and from Dispatches.
+
 Old archives are not dragged through any of it: a campaign that predates the briefing is marked as already briefed, and both can be replayed on demand.
 
 ## Enter Supreme Command
@@ -68,7 +70,7 @@ There is no install, bundler, or build step. Open `index.html` directly, or serv
 - **Spend Silence Energy** on filters, microphones, a vent, reinforced casing, or the one-use Emergency Dump. Open the Vent while a safe vent rate is showing.
 - **The Landlord's Desk** sells rooms, Silencer research, staff and amenities. Swipe or use the arrows below the pub to page through rooms.
 - **Pause** with the header button or the space bar. **Long-press a patron** for patience, noise and trade. Progress saves in this browser.
-- **First Wednesday:** a returning player is spared it, but a new ledger opens with the **landlord’s briefing** — three pages on service, on Mr Fenton’s positronic apparatus and its three directives, and on the evening’s orders. The **evening’s orders** card then sits at the top of the management column and ticks off the loop as you perform it: tap a patron, pull the pint, serve them, switch a zone on, vent, and open the Landlord’s Desk. It stays as a permanent reminder of the loop — serve → silence → vent → spend → grow — and can be run again from the card.
+- **First Wednesday:** a returning player is spared it, but a new ledger opens with the **landlord’s briefing** — three pages on service, on Mr Fenton’s positronic apparatus and its three directives, and on the evening’s orders. The **evening’s orders** card then sits at the top of the management column and ticks off the loop as you perform it: tap a patron, pull the pint, serve them, switch a zone on, vent, and open the Landlord’s Desk. It stays as a permanent reminder of the loop — serve → silence → vent → spend → grow — and can be run again from the card. The header's **NEW** button opens the restart sheet, which offers all three separately: wipe the ledger and start a new Wednesday (the briefing plays again, as it did the first time), replay the briefing alone, or run the evening's orders again with the ledger untouched.
 
 Win by reaching Silencer Tier 5 with all nine rooms open, ten Wednesdays survived, and the pantry stocked. Lose at zero reputation, three explosions, or a full minute above 95 dB.
 

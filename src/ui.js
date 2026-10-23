@@ -316,6 +316,12 @@
       <div class="modal-actions">
         <button class="action-button ghost" type="button" data-action="cancel">KEEP THIS WEDNESDAY</button>
         <button class="action-button" type="button" data-action="confirm-restart">START A NEW WEDNESDAY ↻</button>
+      </div>
+      <p class="modal-kicker" style="margin-top:18px">OR, WITHOUT THE WIPE</p>
+      <p class="modal-lede">The ledger stays exactly as it is. Only the teaching starts again.</p>
+      <div class="modal-actions">
+        <button class="action-button ghost" type="button" data-action="replay-briefing">REPLAY THE BRIEFING</button>
+        <button class="action-button ghost" type="button" data-action="restart-orders">RUN THE ORDERS AGAIN</button>
       </div>`;
   }
 
@@ -385,6 +391,13 @@
     const action = button.dataset.action;
     if (action === 'cancel') { closeModal(); return; }
     if (action === 'confirm-restart') { closeModal(); WH.game.startNewGame(); return; }
+    if (action === 'replay-briefing') { closeModal(); showIntro(0); return; }
+    if (action === 'restart-orders') {
+      closeModal();
+      WH.game.tourReset();
+      toast('The evening\u2019s orders', 'Six things to do, in order, and the card on the right will tick them off as you do them.', 6000);
+      return;
+    }
     WH.audio.play('click');
     if (action === 'unlock-room') WH.game.tryUnlockRoom(button.dataset.id);
     else if (action === 'rebuild-room') WH.game.tryRebuildRoom(button.dataset.id);
