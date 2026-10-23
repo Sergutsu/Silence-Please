@@ -16,7 +16,7 @@ function boot(archive = null) {
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
   w.HTMLDialogElement.prototype.close = function () { this.open = false; };
   if (archive) w.localStorage.setItem(KEY, JSON.stringify(archive));
-  for (const file of ["directorate", "campaign-combat", "campaign"])
+  for (const file of ["lore", "directorate", "campaign-combat", "campaign"])
     w.eval(fs.readFileSync(`src/${file}.js`, "utf8"));
   const click = (selector) => {
     const el = w.document.querySelector(selector);
@@ -91,7 +91,7 @@ silence.close();
 const firstContact = boot(firstContactArchive);
 firstContact.click("#end-turn");
 assert.equal(firstContact.state().ending, "A greeting in the dark");
-assert.ok(firstContact.w.document.getElementById("dialog-copy").textContent.includes("welcome"));
+assert.ok(firstContact.w.document.getElementById("dialog-copy").textContent.includes("stops asking"));
 assert.deepEqual(firstContact.state().gagsSeen, [13]);
 firstContact.close();
 console.log("Deep Signal integration checks passed: decoding, branching endings, Easter eggs, campaign gags, and v1 migration.");

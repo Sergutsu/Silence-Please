@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#080d16" />
-    <meta name="description" content="A dark, Clarke-inspired strategy game about a wartime fleet, an impossible signal, and the price of looking up." />
-    <title>Absolute Superiority — The Long Quiet</title>
+    <meta name="description" content="A dark, Asimov-inspired strategy game about a falling frontier, machines that cannot escape their own directives, and one question asked for ten thousand years." />
+    <title>Absolute Superiority — The Long Forecast</title>
     <link rel="stylesheet" href="command.css" />
     <link rel="stylesheet" href="pub-realm.css" />
     <script defer src="vendor/pixi.min.js"></script>
@@ -18,6 +18,7 @@
     <script defer src="src/game.js"></script>
     <script defer src="src/ui.js"></script>
     <script defer src="src/main.js"></script>
+    <script defer src="src/lore.js"></script>
     <script defer src="src/directorate.js"></script>
     <script defer src="src/pub-annex.js"></script>
     <script defer src="src/campaign-combat.js"></script>
@@ -28,7 +29,7 @@
       <a class="brand" href="index.html"
         ><span class="crest">✦</span
         ><span
-          >ABSOLUTE<br />SUPERIORITY<small>THE BURDEN OF GENIUS · THE LONG QUIET</small></span
+          >ABSOLUTE<br />SUPERIORITY<small>THE BURDEN OF GENIUS · THE LONG FORECAST</small></span
         ></a
       >
       <div class="command-label">SUPREME COMMAND / 01</div>
@@ -72,11 +73,11 @@
         <div class="page-heading">
           <div>
             <p class="eyebrow">
-              THE ORION CAMPAIGN <span>/</span> THE LONG QUIET
+              THE ORION CAMPAIGN <span>/</span> THE LONG FORECAST
             </p>
             <h1 id="page-title">Headquarters</h1>
             <p id="page-subtitle">
-              The enemy is advancing. Somewhere beyond it, something has answered.
+              The Calculus gave this frontier twelve cycles. Something in the dark is still asking a question.
             </p>
           </div>
           <div class="turn-control">
@@ -94,6 +95,7 @@
           aria-label="Campaign resources"
           id="resources"
         ></section>
+        <section class="mission" id="mission" aria-label="Current order and the campaign loop"></section>
         <div id="view"></div>
     <section id="pub-realm" class="pub-realm" hidden aria-label="The White Hart">
   <div class="paper-grain" aria-hidden="true"></div>
@@ -133,7 +135,7 @@
       <div class="resource-cell resource-se"><span class="resource-icon" aria-hidden="true">🔇</span><div><span class="resource-name">SILENCE ENERGY</span><strong id="res-energy-top">18</strong></div><span class="resource-rate" id="rate-energy-top">+0.0 / sec</span></div>
     </section>
 
-    <section class="annex-location" aria-label="The White Hart in the campaign"><div class="annex-orbit" aria-hidden="true">✦</div><div><p class="eyebrow">ABSOLUTE SUPERIORITY / NORDEN DEEP</p><p>The Directorate builds the future next door.<br><em>We check it over a pint.</em></p></div><button type="button" class="annex-jump" data-annex-jump>Prototype checks <span>0.000001% deviation*</span></button></section>
+    <section class="annex-location" aria-label="The White Hart in the campaign"><div class="annex-orbit" aria-hidden="true">✦</div><div><p class="eyebrow">ABSOLUTE SUPERIORITY / NORDEN DEEP</p><p>The Directorate builds the future next door, to three directives.<br><em>We check whether it keeps the second one.</em></p></div><button type="button" class="annex-jump" data-annex-jump>Prototype checks <span>0.000001% deviation*</span></button></section>
     <section id="annex-running" class="annex-running" hidden data-annex-controls aria-label="Active prototype check"><div><span class="eyebrow">EXPERIMENT IN PROGRESS</span><strong id="annex-trial-name"></strong><p id="annex-pause-note"></p></div><div class="annex-sampling"><label for="annex-progress" id="annex-seconds">0 / 12 seconds</label><progress id="annex-progress" max="100" value="0"></progress><span id="annex-pint">0 / 1 control pint served</span></div><button id="annex-cancel" type="button">Cancel check</button></section>
     <main class="game-layout">
       <section class="pub-panel panel">
@@ -165,6 +167,13 @@
       </section>
 
       <aside class="management-column" aria-label="Pub management">
+        <section class="tour-card panel" id="pub-tour" aria-label="The evening’s orders">
+          <div class="tour-head"><p class="eyebrow" id="pub-tour-eyebrow">FIRST WEDNESDAY <span class="heading-rule"></span></p><strong id="pub-tour-count">0 / 6</strong></div>
+          <h2 id="pub-tour-title">How an evening is run.</h2>
+          <ol class="tour-steps" id="pub-tour-steps"></ol>
+          <p class="tour-loop" id="pub-tour-loop">THE LOOP: serve → silence → vent → spend → grow. Ten Wednesdays in a row makes the pub legendary.</p>
+          <button class="text-button" id="pub-tour-again" type="button" hidden>Run the orders again ↻</button>
+        </section>
         <section class="meter-card panel" id="energy-card" aria-live="polite">
           <div class="meter-head">
             <div><p class="eyebrow">THE FENTON SILENCER</p><h2>Silence energy</h2></div>
@@ -236,7 +245,7 @@
 
   <section id="pub-laboratory" class="pub-laboratory" data-annex-controls aria-labelledby="annex-title">
     <div class="annex-lab-header"><div><p class="eyebrow">RESEARCH DIRECTORATE · FIELD STATION W.H. / 001</p><h2 id="annex-title">The experimental round.</h2><p>Oak panelling. Proper ale. A vacuum-tube computer where the fruit machine used to be.</p></div><div class="deviation-seal"><span>CLAIMED STATISTICAL DEVIATION</span><strong>0.000001%</strong><small>“Practically the universe itself.” — Norden</small></div></div>
-    <p class="annex-lore">Every scientist here works at the Directorate next door. They bring their theories; Fenton brings a bell jar; the landlord insists on a beer mat. All three projects can be checked during ordinary pub service.</p>
+    <p class="annex-lore">Every scientist here works at the Directorate next door. They bring their theories; Fenton brings a bell jar; the landlord insists on a beer mat. A prototype check is really a test of the first directive — whether the machine can be used without destroying a crew — and the pub is the only place in Norden Deep where the answer is honest. All three projects can be checked during ordinary pub service.</p>
     <div class="annex-lab-meta"><span id="annex-link-state"></span><button type="button" class="annex-nav" data-view="research">Return to the Research Directorate ↗</button></div>
     <div id="annex-projects" class="annex-projects"></div>
     <p id="annex-message" class="annex-message" role="status"></p>
@@ -274,6 +283,8 @@
     </div>
   </div>
 
+  <div class="pub-intro" id="pub-intro" role="dialog" aria-label="The landlord’s briefing" hidden></div>
+
   <div class="tooltip" id="tooltip" hidden></div>
   <p class="visually-hidden" id="live-announcer" aria-live="polite"></p>
     </section>
@@ -288,6 +299,8 @@
         </footer>
       </main>
     </div>
+    <div id="prologue" class="prologue" role="dialog" aria-label="Campaign introduction" hidden></div>
+    <aside id="tour-coach" class="tour-coach" aria-label="Tutorial coach" hidden></aside>
     <dialog id="briefing">
       <div class="eyebrow">CLASSIFIED / COMMAND BRIEFING</div>
       <h2 id="dialog-title"></h2>

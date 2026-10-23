@@ -17,6 +17,7 @@ w.HTMLDialogElement.prototype.showModal = function () {
 w.HTMLDialogElement.prototype.close = function () {
   this.open = false;
 };
+w.eval(fs.readFileSync("src/lore.js", "utf8"));
 w.eval(fs.readFileSync("src/directorate.js", "utf8"));
 w.eval(fs.readFileSync("src/campaign-combat.js", "utf8"));
 w.eval(fs.readFileSync("src/campaign.js", "utf8"));
