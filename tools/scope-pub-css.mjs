@@ -21,14 +21,19 @@ function transform(css) {
     const prelude = css.slice(i, open);
     const close = matching(css, open);
     const body = css.slice(open + 1, close);
-    const head = prelude.trim();
+    const comments = prelude.match(/\/\*[\s\S]*?\*\//g) || [];
+    // A section comment often sits immediately before an at-rule. Detect the
+    // rule after removing comments; otherwise `/* responsive */ @media` is
+    // mistaken for a selector and emitted as the invalid `.pub-realm @media`.
+    const barePrelude = prelude.replace(/\/\*[\s\S]*?\*\//g, '');
+    const head = barePrelude.trim();
+    const prefix = comments.join('\n') + (comments.length ? '\n' : '');
     if (head.startsWith('@')) {
       const keepAsIs = /^@(keyframes|font-face|-webkit-keyframes)/.test(head);
-      out += prelude + '{' + (keepAsIs ? body : transform(body)) + '}';
+      out += prefix + head + ' {' + (keepAsIs ? body : transform(body)) + '}';
     } else {
-      const comments = prelude.match(/\/\*[\s\S]*?\*\//g) || [];
-      const selectors = prelude.replace(/\/\*[\s\S]*?\*\//g, '').split(',').map(scopeSelector).join(', ');
-      out += comments.join('\n') + (comments.length ? '\n' : '') + selectors + ' {' + body + '}';
+      const selectors = barePrelude.split(',').map(scopeSelector).join(', ');
+      out += prefix + selectors + ' {' + body + '}';
     }
     i = close + 1;
   }

@@ -77,9 +77,13 @@ test("the pub steps at one set of widths, annex included", () => {
   const used = stopsIn(pubCss);
   assert.ok(used.length >= 6, `expected a real set of stops, found ${used.length}`);
   assert.equal(offGrid(used, PUB_STOPS).map((s) => `${s.dir}-width: ${s.px}px`).join(", "), "", "pub styles step off grid");
-  // the compiled sheet is what the browser loads, so it must carry the same set
+  // The compiled sheet is what the browser loads. Its at-rules must remain
+  // at-rules (never `.pub-realm @media`) and carry every authored stop.
+  const compiled = stopsIn(realmCss);
+  assert.doesNotMatch(realmCss, /\.pub-realm\s+@(?:media|supports|container)\b/, "a pub at-rule was corrupted into a selector");
+  assert.deepEqual(compiled, used, "pub-realm.css lost or added a responsive stop");
   assert.equal(
-    offGrid(stopsIn(realmCss), PUB_STOPS).map((s) => `${s.dir}-width: ${s.px}px`).join(", "),
+    offGrid(compiled, PUB_STOPS).map((s) => `${s.dir}-width: ${s.px}px`).join(", "),
     "",
     "pub-realm.css steps off grid"
   );
