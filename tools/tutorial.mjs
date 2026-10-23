@@ -263,4 +263,43 @@ test("a malformed tour object is rejected with the rest of the archive", () => {
   g.close();
 });
 
-console.log(`${checks} briefing checks passed: introduction, tutorial, mission panel, cycle report, migration.`);
+test("the topbar restart menu replays the introduction, the tutorial, or the campaign", () => {
+  const g = boot();
+  g.click("#prologue-skip");
+  g.click('[data-system="0"]');
+  g.click("#coach-cta");
+  assert.ok(g.state().tour.step >= 1);
+  const turn = g.state().turn;
+
+  g.click("#restart-menu");
+  const menu = g.text("#dialog-copy");
+  assert.ok(menu.includes("Replay the introduction"));
+  assert.ok(menu.includes("Restart the tutorial"));
+  assert.ok(menu.includes("Start a new campaign"));
+
+  // Restarting the tutorial clears the coach but leaves the campaign alone.
+  g.click('[data-action="restart-tour"]');
+  assert.equal(g.state().tour.step, 0);
+  assert.deepEqual(g.state().tour.marks, []);
+  assert.equal(g.state().tour.done, false);
+  assert.equal(g.hidden("#tour-coach"), false);
+  assert.equal(g.state().turn, turn);
+
+  // The introduction replays from page one.
+  g.click("#restart-menu");
+  g.click('[data-action="replay-intro"]');
+  assert.equal(g.hidden("#prologue"), false);
+  assert.ok(g.text("#prologue").includes("1 / 5"));
+  g.click("#prologue-skip");
+
+  // A new campaign starts again at cycle 012, introduction included.
+  g.click('[data-view="dispatches"]');
+  g.click('[data-action="reset"]');
+  g.click("#confirm-reset");
+  assert.equal(g.state().turn, 12);
+  assert.equal(g.state().tour.intro, false);
+  assert.equal(g.hidden("#prologue"), false);
+  g.close();
+});
+
+console.log(`${checks} briefing checks passed: introduction, tutorial, mission panel, cycle report, restart menu, migration.`);

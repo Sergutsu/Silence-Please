@@ -1847,8 +1847,9 @@
     }
     scene().markDirty();
     setCaption('Three regulars have arrived. One of them has brought a notebook and an opinion.');
-    ui().toast('Wednesday, 7:00 PM', 'The White Hart is open. Serve the regulars, keep an eye on the Silencer, and try not to make the physicists right.', 9000);
     saveState();
+    // A fresh ledger begins the way the first one did: with the briefing.
+    ui().showIntro(0);
   }
 
   function boot() {

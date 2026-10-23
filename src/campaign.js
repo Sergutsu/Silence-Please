@@ -1311,9 +1311,11 @@
       $("confirm-reset").onclick = () => {
         s = fresh();
         view = "headquarters";
+        selected = 2;
         $("briefing").close();
         save();
         render();
+        showPrologue(0);
       };
       return;
     }
@@ -1672,6 +1674,30 @@
       <div class="toolbar"><button class="outline" data-action="restart-tour" type="button">Replay the tutorial</button><button class="outline" data-action="replay-intro" type="button">Replay the introduction</button></div>
       <p class="brief-note">The background of this campaign is drawn from the themes of Isaac Asimov's stories — the mathematics of falling empires, machines that cannot escape their own directives, one question asked for ten thousand years, and a night that comes once every 2,049 years. The text is original: an homage, not an adaptation. The full dossier is in Dispatches.</p>`;
   }
+  function restartCopy() {
+    const step = tourStep();
+    const tourState = s.tour.done
+      ? "The tutorial is complete."
+      : step
+        ? `The tutorial is on step ${s.tour.step + 1} of ${TOUR_STEPS.length}: ${step.title}.`
+        : "The tutorial is not running.";
+    return `<p>Three separate switches. None of them touches the pub's ledger, which is kept apart from the campaign archive.</p>
+      <div class="restart-grid">
+        <button class="outline wide" data-action="replay-intro" type="button"><strong>Replay the introduction</strong><small>The five-page briefing, from the Calculus to your orders. Skippable at any point.</small></button>
+        <button class="outline wide" data-action="restart-tour" type="button"><strong>Restart the tutorial</strong><small>${escapeHTML(tourState)} Restarting returns the coach to step 1 and clears its progress; the campaign carries on as it is.</small></button>
+        <button class="outline wide" data-action="reset" type="button"><strong>Start a new campaign</strong><small>Wipes this campaign archive and begins again at cycle 012, introduction included. There is no undo.</small></button>
+      </div>
+      <p class="brief-note">Cycle ${String(s.turn).padStart(3, "0")} · ${Math.max(0, s.enemy)} enemy vessels · ${s.tour.marks.length} tutorial marks recorded.</p>`;
+  }
+  const restartMenuButton = $("restart-menu");
+  if (restartMenuButton)
+    restartMenuButton.onclick = () => {
+      if (s.battle) {
+        s.battle.paused = true;
+        render();
+      }
+      modal("Restart, briefing, or begin again.", restartCopy());
+    };
   $("help").onclick = () => {
     if (s.battle) {
       s.battle.paused = true;

@@ -90,7 +90,34 @@ const steps = (w) => [...w.document.querySelectorAll('#pub-tour-steps li')];
     assert.equal(count(w), '0 / 6');
     assert.equal($(w, '#pub-tour-again').hidden, true);
   });
+  test('the restart sheet replays the briefing or the orders without wiping the ledger', () => {
+    WH.ui.openModal('restart');
+    const sheet = $(w, '#modal-content').textContent;
+    assert.ok(sheet.includes('REPLAY THE BRIEFING'));
+    assert.ok(sheet.includes('RUN THE ORDERS AGAIN'));
+    assert.ok(sheet.includes('START A NEW WEDNESDAY'));
+
+    $(w, '[data-action="replay-briefing"]').click();
+    assert.equal($(w, '#pub-intro').hidden, false);
+    assert.ok($(w, '#pub-intro').textContent.includes('1 / 3'));
+    $(w, '#pub-intro-skip').click();
+
+    WH.ui.openModal('restart');
+    $(w, '[data-action="restart-orders"]').click();
+    assert.equal($(w, '#modal-root').hidden, true);
+    assert.equal(WH.game.state.tutorial.marks.length, 0);
+    assert.equal(count(w), '0 / 6');
+    assert.ok(WH.game.state.resources.pints > 0, 'the ledger survived');
+  });
+
+  test('a new Wednesday begins the way the first one did', () => {
+    WH.ui.openModal('restart');
+    $(w, '[data-action="confirm-restart"]').click();
+    assert.equal($(w, '#pub-intro').hidden, false);
+    assert.equal(count(w), '0 / 6');
+    assert.equal(WH.game.state.week, 1);
+  });
   w.close();
 }
 
-console.log(`${checks} pub briefing checks passed: landlord's introduction, evening's orders, persistence.`);
+console.log(`${checks} pub briefing checks passed: landlord's introduction, evening's orders, restart sheet, persistence.`);

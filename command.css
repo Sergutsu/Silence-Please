@@ -2394,3 +2394,16 @@ dialog .toolbar { margin: 18px 0 0; }
   .tour-coach,
   .tour-target { animation: none; }
 }
+
+/* ---------------------------------------------------------- restart menu */
+dialog .restart-grid { display: grid; gap: 10px; margin: 16px 0 6px; }
+dialog .restart-grid .wide {
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px;
+  text-align: left;
+  line-height: 1.4;
+}
+dialog .restart-grid strong { color: #e2f1f4; font-size: 13px; letter-spacing: .2px; }
+dialog .restart-grid small { color: #8ba3ad; font-size: 11px; line-height: 1.55; }
+dialog .restart-grid .wide:hover:not(:disabled) small { color: #a8c6cd; }
