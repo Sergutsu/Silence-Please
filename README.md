@@ -23,6 +23,23 @@ Nothing here is one effect pasted across the interface — each department has i
 
 On top of that, **every resource number flashes once when its value actually changes**, and the mission panel pulses when the next order changes — so a cycle's cost is visible without reading the report. All of it is switched off under `prefers-reduced-motion`, and `tools/motion.mjs` fails the build if a signature animation is reused somewhere else or if any animation escapes the reduced-motion block.
 
+## The interface at any width
+
+Both screens step at one set of widths, and nothing is allowed to invent its own:
+
+| Screen | Stops |
+| --- | --- |
+| Supreme Command | 1450 · 1150 · 950 · 650 · 380 |
+| The White Hart (and its laboratory annex) | 1120 · 860 · 540 · 380 |
+
+What that buys you as the window narrows: the five readouts go 5 → 3 across before they get cramped, the mission panel stacks under its own order at 1150px and its six loop buttons go 3-up then 2-up, the dossier and research cards re-fit instead of pushing the page sideways, the sidebar becomes a top rail at 650px, and buttons in the mission order go full width on a phone.
+
+Three guarantees are enforced rather than hoped for, and `tools/layout.mjs` fails the build if any of them breaks:
+
+- **No track wider than its box.** Every `auto-fit` grid uses `minmax(min(Npx, 100%), 1fr)`, so a narrow dialog can never be forced into horizontal scrolling.
+- **A tall card keeps its own top.** The prologue, the landlord's briefing and the crisis screen centre with flex plus `margin: auto` instead of `place-items: center`, which clips whatever sticks out above a short viewport.
+- **Nothing is painted over.** The tutorial coach measures itself and publishes `body.coach-open` and `--coach-h`, so the workspace keeps room for it at the bottom and the toast moves up under the top bar instead of vanishing behind the card; the coach stands down entirely during an engagement.
+
 ## First ten minutes
 
 1. **The introduction** opens on load: five short pages — the Calculus, the commander the model cannot hold, the Directorate and its three directives, the Quiet Array, and your orders. Every page can be skipped; it can be replayed from the `?` briefing or Dispatches.
@@ -66,6 +83,7 @@ node tools/campaign-edge.mjs
 node tools/story.mjs
 node tools/tutorial.mjs
 node tools/motion.mjs
+node tools/layout.mjs
 node tools/smoke.mjs
 node tools/pub-tutorial.mjs
 node tools/apicheck.mjs

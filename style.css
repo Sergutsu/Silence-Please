@@ -354,9 +354,9 @@ button:focus-visible { outline: 2px solid #edce83; outline-offset: 3px; }
 .help-card p { margin: 0; color: #a0a18b; font: 10px/1.55 'Courier New', monospace; }
 
 /* ---------------------------------------------------------------- crisis */
-.crisis-screen { position: fixed; z-index: 130; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(4, 7, 5, .94); animation: fadeIn .28s ease; }
+.crisis-screen { position: fixed; z-index: 130; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: auto; background: rgba(4, 7, 5, .94); animation: fadeIn .28s ease; }
 .crisis-screen[hidden] { display: none; }
-.crisis-inner { width: min(520px, 100%); padding: 36px 32px 30px; border: 1px solid rgba(210, 176, 116, .47); outline: 5px solid rgba(205, 169, 105, .06); background: radial-gradient(ellipse at 30% 0%, rgba(194, 155, 89, .1), transparent 60%), #1a251e; text-align: center; box-shadow: 0 20px 70px rgba(0, 0, 0, .5); }
+.crisis-inner { margin: auto; width: min(520px, 100%); padding: 36px 32px 30px; border: 1px solid rgba(210, 176, 116, .47); outline: 5px solid rgba(205, 169, 105, .06); background: radial-gradient(ellipse at 30% 0%, rgba(194, 155, 89, .1), transparent 60%), #1a251e; text-align: center; box-shadow: 0 20px 70px rgba(0, 0, 0, .5); }
 .crisis-kicker { margin: 0; color: #c0a873; font: 700 9px/1 'Courier New', monospace; letter-spacing: .2em; }
 .crisis-title { margin: 14px 0 11px; color: #f0e1bf; font: 500 clamp(26px, 5vw, 40px)/1.05 Georgia, serif; letter-spacing: -.04em; }
 .crisis-copy { margin: 0 auto 20px; max-width: 390px; color: #a9aa93; font: italic 13px/1.5 Georgia, serif; }
@@ -526,7 +526,9 @@ body.shake-screen .app-shell { animation: screenShake .4s linear 3; }
 
 /* --------------------------------------------------- the landlord's brief */
 .pub-intro {
-  position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
+  /* flex + margin:auto centres safely: a card taller than the window still
+     keeps its own top edge reachable instead of clipping it. */
+  position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center;
   padding: clamp(14px, 4vw, 44px);
   background:
     radial-gradient(ellipse at 18% 14%, rgba(122, 148, 96, .2), transparent 55%),
@@ -536,6 +538,7 @@ body.shake-screen .app-shell { animation: screenShake .4s linear 3; }
 }
 .pub-intro[hidden] { display: none; }
 .pub-intro-inner {
+  margin: auto;
   width: min(660px, 100%); padding: clamp(22px, 3.4vw, 40px);
   border: 1px solid rgba(209, 180, 119, .34); border-radius: 12px;
   background: linear-gradient(150deg, rgba(34, 46, 36, .97), rgba(20, 30, 23, .98));

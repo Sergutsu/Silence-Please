@@ -494,6 +494,18 @@
     render();
     if (!quiet) toast("Tutorial restarted. Follow the coach card.");
   }
+  /* The coach card floats over the bottom right of the workspace, where the
+     toast also lives. Publish which of the two is on screen and how tall the
+     card is, so the page can keep its last rows reachable and the toast can
+     step out from behind the card instead of vanishing under it. */
+  function syncCoachRoom() {
+    const root = $("tour-coach");
+    const open = Boolean(root && !root.hidden);
+    document.body.classList.toggle("coach-open", open);
+    const height = open ? root.offsetHeight : 0;
+    if (height) document.body.style.setProperty("--coach-h", `${Math.round(height) + 6}px`);
+    else document.body.style.removeProperty("--coach-h");
+  }
   function renderTour() {
     const root = $("tour-coach");
     if (!root) return;
@@ -502,6 +514,7 @@
     const step = tourStep();
     if (!step || s.tour.done || s.ending || s.battle) {
       root.hidden = true;
+      syncCoachRoom();
       return;
     }
     const progress = Math.min(s.tour.step + 1, TOUR_STEPS.length);
@@ -515,6 +528,7 @@
       </div>
       <div class="coach-progress" aria-hidden="true">${TOUR_STEPS.map((_, i) => `<i class="${i < s.tour.step ? "done" : i === s.tour.step ? "on" : ""}"></i>`).join("")}</div>`;
     root.hidden = false;
+    syncCoachRoom();
     $("coach-cta").onclick = () => {
       if (step.finish) {
         s.tour.done = true;
@@ -1661,6 +1675,8 @@
     }
   };
   document.addEventListener("fullscreenchange", updateFullscreenLabel);
+  // The card wraps differently at every width, so re-measure the room it takes.
+  window.addEventListener("resize", syncCoachRoom);
   function helpCopy() {
     const directives = (Lore.DIRECTIVES || [])
       .map(

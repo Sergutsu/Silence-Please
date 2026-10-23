@@ -1875,6 +1875,16 @@ body { min-width: 0; }
 .workspace .cards > *,
 .workspace .bridge-layout,
 .workspace .bridge-layout > *,
+.mission,
+.mission > *,
+.phase-strip,
+.phase-strip > *,
+.mission-goal,
+.mission-goal > *,
+.dossier-grid,
+.dossier-grid > *,
+.tour-coach,
+.tour-coach > *,
 #pub-realm,
 #pub-realm .app-shell,
 #pub-realm .game-layout,
@@ -1905,7 +1915,10 @@ body { min-width: 0; }
 .workspace .battle-stats { flex-wrap: wrap; }
 .workspace .bridge-controls { flex-wrap: wrap; }
 .workspace .weapon-button,
-.workspace .production-body .meter { min-width: 0; }
+.workspace .production-body .meter,
+.phase,
+.coach-body,
+.prologue-inner { min-width: 0; }
 
 @media (max-width: 950px) {
   .workspace .page-heading {
@@ -2027,8 +2040,9 @@ body { min-width: 0; }
   position: fixed;
   inset: 0;
   z-index: 90;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: clamp(16px, 4vw, 54px);
   color: #cfdde5;
   background:
@@ -2055,6 +2069,7 @@ body { min-width: 0; }
 @keyframes prologue-drift { to { transform: translate3d(-24px, -18px, 0); } }
 .prologue-inner {
   position: relative;
+  margin: auto; /* safe centring: the top stays reachable when the card is tall */
   width: min(720px, 100%);
   padding: clamp(24px, 3.6vw, 46px);
   border: 1px solid rgba(133, 189, 201, .26);
@@ -2135,7 +2150,7 @@ body { min-width: 0; }
   right: clamp(12px, 2vw, 26px);
   bottom: clamp(12px, 2vw, 26px);
   z-index: 70;
-  width: min(372px, calc(100vw - 24px));
+  width: min(372px, calc(100vw - 52px)); /* its own 26px insets included */
   padding: 18px 18px 14px;
   border: 1px solid rgba(150, 205, 214, .3);
   border-radius: 13px;
@@ -2337,7 +2352,7 @@ dialog .toolbar { margin: 18px 0 0; }
 .dossier { margin-top: 22px; }
 .dossier-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
   gap: 14px;
   margin-top: 16px;
 }
@@ -2368,14 +2383,68 @@ dialog .toolbar { margin: 18px 0 0; }
 .dossier-directives li { margin-bottom: 8px; }
 .dossier-directives small { display: block; color: #7e96a1; font-size: 11.5px; }
 
-@media (max-width: 1080px) {
+/* -------------------------------------------------------------- responsive
+   The terminal steps at 1450 / 1150 / 950 / 650 / 380, and everything here uses
+   those same stops so the newer panels reflow with the rest of the interface. */
+
+/* The coach and the toast both live at the bottom right, and the coach paints
+   over the toast. While the coach is open the toast moves up under the top bar
+   and the page keeps room for the card, so neither hides anything. The height
+   is measured by the coach itself and written to --coach-h. */
+body.coach-open .workspace > main { padding-bottom: calc(var(--coach-h, 250px) + 26px); }
+body.coach-open #command-toast {
+  top: 76px;
+  bottom: auto;
+  left: 50%;
+  max-width: min(560px, calc(100vw - 40px));
+}
+
+@media (max-width: 1150px) {
   .mission { grid-template-columns: minmax(0, 1fr); }
   .phase-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .workspace .resources { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .workspace .resource:nth-child(3) { border-right: 0; }
+  .workspace .resource:nth-child(n+4) { border-top: 1px solid rgba(127, 171, 185, .13); }
 }
-@media (max-width: 720px) {
-  .mission-goal { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 950px) {
+  .mission-goal { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dossier-grid { grid-template-columns: repeat(auto-fit, minmax(min(215px, 100%), 1fr)); }
+}
+@media (max-width: 650px) {
   .phase-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tour-coach { right: 8px; left: 8px; bottom: 8px; width: auto; }
+  .mission { gap: 15px; padding: 14px; }
+  .mission-order h2 { font-size: 21px; }
+  .mission-order p { font-size: 11.5px; }
+  .mission-order .primary { width: 100%; }
+  .mission-goal { grid-template-columns: minmax(0, 1fr); gap: 11px; }
+  .dossier-grid { grid-template-columns: minmax(0, 1fr); }
+  .tour-coach {
+    right: 9px;
+    left: 9px;
+    bottom: 9px;
+    width: auto;
+    padding: 14px 14px 11px;
+    max-height: calc(100svh - 18px); /* never taller than the phone in front of it */
+    overflow: auto;
+  }
+  .coach-title { font-size: 17px; }
+  .coach-body { max-height: 32vh; overflow: auto; font-size: 11.5px; }
+  .coach-actions { gap: 10px; }
+  .coach-actions .primary { flex: 1 1 auto; }
+  body.coach-open #command-toast { top: 62px; }
+  dialog .restart-grid .wide { padding: 11px 12px; }
+}
+@media (max-width: 380px) {
+  .phase-strip { gap: 4px; }
+  .phase { padding: 8px 6px; }
+  .phase-label { font-size: 8px; }
+  .phase-note { font-size: 8.5px; }
+  .mission-order h2 { font-size: 19px; }
+  .mission-goal strong { font-size: 14px; }
+  .tour-coach { padding: 12px 12px 10px; }
+  .coach-title { font-size: 16px; }
+  .coach-body { font-size: 11px; }
+  .coach-progress i { height: 2px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .prologue::before,
