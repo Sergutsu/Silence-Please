@@ -165,7 +165,9 @@
           "'": "&#39;",
         })[char],
     );
-  let s = fresh(),
+  let lastResources = null,
+    lastOrder = null,
+    s = fresh(),
     view = location.hash === "#research" ? "research" : location.hash === "#signal" ? "signal" : location.hash === "#white-hart" ? "white-hart" : "headquarters",
     selected = location.hash === "#signal" ? 8 : location.hash === "#white-hart" ? 7 : 2,
     toastTimer,
@@ -492,6 +494,18 @@
     render();
     if (!quiet) toast("Tutorial restarted. Follow the coach card.");
   }
+  /* The coach card floats over the bottom right of the workspace, where the
+     toast also lives. Publish which of the two is on screen and how tall the
+     card is, so the page can keep its last rows reachable and the toast can
+     step out from behind the card instead of vanishing under it. */
+  function syncCoachRoom() {
+    const root = $("tour-coach");
+    const open = Boolean(root && !root.hidden);
+    document.body.classList.toggle("coach-open", open);
+    const height = open ? root.offsetHeight : 0;
+    if (height) document.body.style.setProperty("--coach-h", `${Math.round(height) + 6}px`);
+    else document.body.style.removeProperty("--coach-h");
+  }
   function renderTour() {
     const root = $("tour-coach");
     if (!root) return;
@@ -500,6 +514,7 @@
     const step = tourStep();
     if (!step || s.tour.done || s.ending || s.battle) {
       root.hidden = true;
+      syncCoachRoom();
       return;
     }
     const progress = Math.min(s.tour.step + 1, TOUR_STEPS.length);
@@ -513,6 +528,7 @@
       </div>
       <div class="coach-progress" aria-hidden="true">${TOUR_STEPS.map((_, i) => `<i class="${i < s.tour.step ? "done" : i === s.tour.step ? "on" : ""}"></i>`).join("")}</div>`;
     root.hidden = false;
+    syncCoachRoom();
     $("coach-cta").onclick = () => {
       if (step.finish) {
         s.tour.done = true;
@@ -702,6 +718,12 @@
     const root = $("mission");
     if (!root) return;
     const order = nextOrder();
+    if (lastOrder !== null && lastOrder !== order.title) {
+      root.classList.remove("flash");
+      void root.offsetWidth; // restart the pulse when the order changes
+      root.classList.add("flash");
+    }
+    lastOrder = order.title;
     const strip = phases()
       .map(
         (phase) =>
@@ -792,12 +814,16 @@
         "warn",
       ],
     ];
+    // Numbers that moved since the last render flash once, so a cycle's cost is legible.
+    const moved = (index, value) =>
+      Array.isArray(lastResources) && lastResources[index] !== value;
     $("resources").innerHTML = rows
       .map(
-        (r) =>
-          `<div class="resource ${r[4]}"><div class="label">${r[0]}</div><div class="value">${r[1]} <small>${r[2]}</small></div><div class="rate">${r[3]}</div></div>`,
+        (r, i) =>
+          `<div class="resource ${r[4]}${moved(i, r[1]) ? " bump" : ""}" style="--i:${i}"><div class="label">${r[0]}</div><div class="value">${r[1]} <small>${r[2]}</small></div><div class="rate">${r[3]}</div></div>`,
       )
       .join("");
+    lastResources = rows.map((r) => r[1]);
     $("cycle").innerHTML =
       `TURN ${String(s.turn).padStart(3, "0")} <small>/ 024</small>`;
     $("end-turn").disabled = !!s.ending || !!s.battle || !!s.hearings.length;
@@ -1649,6 +1675,8 @@
     }
   };
   document.addEventListener("fullscreenchange", updateFullscreenLabel);
+  // The card wraps differently at every width, so re-measure the room it takes.
+  window.addEventListener("resize", syncCoachRoom);
   function helpCopy() {
     const directives = (Lore.DIRECTIVES || [])
       .map(

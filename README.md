@@ -2,6 +2,45 @@
 
 An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The campaign now opens with a five-page **introduction**, teaches itself through an eleven-step **tutorial coach**, and keeps a **mission panel** on every screen that names the next order — so the loop is legible before it is playable. The whole background is drawn from the themes of **Isaac Asimov’s stories**: an empire whose fall has become arithmetic, machines that cannot escape their own directives, one question asked for ten thousand years, and a night that comes once every 2,049 years. It is an original homage, not an adaptation — no passage is copied, and the full debt is itemised in the Dispatches dossier. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
 
+## Every screen moves differently
+
+Nothing here is one effect pasted across the interface — each department has its own movement, matched to what it is:
+
+| Where | What it does |
+| --- | --- |
+| The glass itself | A CRT refresh line falls down the terminal every 9.5s over a fine raster |
+| Sidebar | A rail of light walks the conduit; departments grow a marker bar as you reach for them; the uplink lamp blinks on a step |
+| Top bar | A trace runs the length of the rule; the end-turn arrow nudges |
+| The five readouts | Five behaviours: IP wipes a rule under the figure, SP breathes, PC steps like a status lamp, reliability sways like a needle (and shivers when degraded), chaos flickers |
+| Headquarters | A radar cone turns behind the contacts; the intelligence readout keeps a typing caret |
+| Research | Cards unfold from their spine, the glyph turns when you consider it, a scan line drops vertically |
+| Shipyard | A build laser crosses the hull; the queue bar runs as a conveyor |
+| Bridge | The engagement tag blinks while the fight is live; ready weapons carry a lamp |
+| Dispatches | Records file in from the left; the newest keeps a live cursor; the dossier uncovers downward |
+| Mission panel | The loop lights itself **in order** — ASSESS → BUILD → RESEARCH → ENGAGE → LISTEN → ADVANCE — so the sequence is visible; the order button charges and releases |
+| Hearings | The card's edge pulses red and the stamp knocks, because a ruling is overdue |
+| Signal | Fragments decode left to right, one after another |
+
+On top of that, **every resource number flashes once when its value actually changes**, and the mission panel pulses when the next order changes — so a cycle's cost is visible without reading the report. All of it is switched off under `prefers-reduced-motion`, and `tools/motion.mjs` fails the build if a signature animation is reused somewhere else or if any animation escapes the reduced-motion block.
+
+## The interface at any width
+
+Both screens step at one set of widths, and nothing is allowed to invent its own:
+
+| Screen | Stops |
+| --- | --- |
+| Supreme Command | 1450 · 1150 · 950 · 650 · 380 |
+| The White Hart (and its laboratory annex) | 1120 · 860 · 540 · 380 |
+
+What that buys you as the window narrows: the five readouts go 5 → 3 across before they get cramped, the mission panel stacks under its own order at 1150px and its six loop buttons go 3-up then 2-up, the dossier and research cards re-fit instead of pushing the page sideways, the sidebar becomes a top rail at 650px, and buttons in the mission order go full width on a phone. The embedded pub measures its own available width—not the outer browser window—because the command sidebar still occupies part of that window.
+
+Four guarantees are enforced rather than hoped for, and `tools/layout.mjs` fails the build if any of them breaks:
+
+- **Breakpoints measure the screen they lay out.** The scoped White Hart sheet compiles width rules to container queries, so its 860px layout activates when the pub itself has 860px even if the outer window is wider.
+- **No track wider than its box.** Every `auto-fit` grid uses `minmax(min(Npx, 100%), 1fr)`, so a narrow dialog can never be forced into horizontal scrolling.
+- **A tall card keeps its own top.** The prologue, the landlord's briefing and the crisis screen centre with flex plus `margin: auto` instead of `place-items: center`, which clips whatever sticks out above a short viewport.
+- **Nothing is painted over.** The tutorial coach measures itself and publishes `body.coach-open` and `--coach-h`, so the workspace keeps room for it at the bottom and the toast moves up under the top bar instead of vanishing behind the card; the coach stands down entirely during an engagement. On a short desktop, the sidebar slogan yields and the rail scrolls instead of shrinking its footer through the White Hart button.
+
 ## First ten minutes
 
 1. **The introduction** opens on load: five short pages — the Calculus, the commander the model cannot hold, the Directorate and its three directives, the Quiet Array, and your orders. Every page can be skipped; it can be replayed from the `?` briefing or Dispatches.
@@ -44,6 +83,8 @@ node tools/campaign.mjs
 node tools/campaign-edge.mjs
 node tools/story.mjs
 node tools/tutorial.mjs
+node tools/motion.mjs
+node tools/layout.mjs
 node tools/smoke.mjs
 node tools/pub-tutorial.mjs
 node tools/apicheck.mjs
