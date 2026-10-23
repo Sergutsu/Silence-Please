@@ -1,26 +1,37 @@
-# Absolute Superiority — The Burden of Genius
+# Absolute Superiority — The Burden of Genius · The Long Forecast
 
-An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The new **Deep Signal** chapter is an original, Clarke-inspired story about cosmic scale, first contact, scientific humility, and the choice to answer the unknown. It draws on broad speculative themes—not a direct adaptation of any one Arthur C. Clarke story. Every campaign and pub screen now shares one dark nocturne interface, reflows to the viewport without horizontal scrolling, and includes an optional browser-fullscreen control. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
+An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The campaign now opens with a five-page **introduction**, teaches itself through an eleven-step **tutorial coach**, and keeps a **mission panel** on every screen that names the next order — so the loop is legible before it is playable. The whole background is drawn from the themes of **Isaac Asimov’s stories**: an empire whose fall has become arithmetic, machines that cannot escape their own directives, one question asked for ten thousand years, and a night that comes once every 2,049 years. It is an original homage, not an adaptation — no passage is copied, and the full debt is itemised in the Dispatches dossier. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
+
+## First ten minutes
+
+1. **The introduction** opens on load: five short pages — the Calculus, the commander the model cannot hold, the Directorate and its three directives, the Quiet Array, and your orders. Every page can be skipped; it can be replayed from the `?` briefing or Dispatches.
+2. **The tutorial coach** takes over in the corner of the screen and walks the whole loop in eleven steps: read the map, understand the currencies, queue cruisers, authorize a prototype, test it twice, certify it, fly one sortie, rule on the failure report it files, end the cycle, listen to the array, and walk over to the pub. Steps complete themselves the moment you do the thing; each one can be skipped, and the coach stands down while an engagement is live.
+3. **The mission panel** stays after the tutorial. It shows the current order with the reason for it, a button that jumps to the right department, the six-phase loop strip (ASSESS · BUILD · RESEARCH · ENGAGE · LISTEN · ADVANCE) with each phase marked done / open / blocked, and three meters: enemy vessels remaining, cycles left, and unrest.
+4. **The cycle report** lands after every *End turn* and lists exactly what the cycle paid and cost — +40 IP, +15 SP, +3 PC, capital integrity, reliability, chaos, enemy strength — then repeats the next order.
+
+Old archives are not dragged through any of it: a campaign that predates the briefing is marked as already briefed, and both can be replayed on demand.
 
 ## Enter Supreme Command
 
 Serve this folder with `python3 -m http.server 8000 --bind 0.0.0.0`, then open `index.html`. The campaign also works directly from the static files (browser storage availability may vary for file URLs).
 
-- **Headquarters:** select systems on the animated strategic map and review intelligence, resources, and correspondence. The Quiet Array appears as a new, pulsing unknown contact.
-- **Deep Signal:** spend IP / SP across three listening passes to decode an ancient mathematical transmission. Reply to open a first-contact ending, or preserve radio silence for a fleet-strength advantage. Three campaign-cycle gags and two new archive Easter eggs reward close attention; one can be found by typing `lighthouse` outside the pub.
+- **Headquarters:** select systems on the animated strategic map and review intelligence, resources, and correspondence. The Quiet Array appears as a pulsing unknown contact.
+- **The Long Question (Deep Signal):** spend IP / SP across three listening passes to decode a transmission that turns out to be a question, asked by a machine that has outlived its makers. Answer it to open a first-contact ending, or hold the silence for a fleet-strength advantage. Three campaign-cycle gags and two archive Easter eggs reward close attention; one can be found by typing `lighthouse` outside the pub.
 - **Research Directorate:** authorize prototypes, interrupt production, conduct two field tests, and fund engineering safeguards. Unsafe weapons have real consequences. Hire theorists for faster research at the cost of reliability, or dismiss Norden for standardization.
 - **Fleet & Production:** commission cruisers, restore reliability, reduce chaos, or cede a base with a poisoned prototype.
 - **Tactical Bridge:** one sortie per campaign cycle. Deploy, pause with the button or Space, then issue formation and targeting orders. Line ahead balances fire and protection; escort screens protect vulnerable support ships; breakthrough trades safety for firepower. Command-vessel targeting disrupts enemy fire. Torpedoes fire automatically; wonder weapons are activated manually. Leaving the bridge or hiding the browser tab pauses combat. Strategic changes require fleet recovery.
+- **The three directives:** every Directorate machine is built to them — it may not allow a crew to be destroyed, it must obey its specification, it must preserve its own calibration. They are why uncertified weapons file failure reports, why safeguards matter, and why the exponential field goes into hysteresis when it is switched off.
 - **Scientific hearings:** failures create persistent reports. Pay 30 IP / 12 PC to demand revisions (grounds the prototype until certified, adds one retooling cycle, reduces unrest), or endorse the excuse (+25 military unrest and +8 chaos). Unresolved reports block turn advancement and deployment; 100 unrest triggers a mutiny.
 - **Enemy adaptation:** the analyzer boosts firepower while its support vessel survives. Enemies learn to prioritize it across engagements. The exponential field protects only the flagship; an unsafe field causes a six-second command blackout on deactivation, including recovery after victory or withdrawal.
 - **The White Hart (Research Directorate’s local):** the pub sits beside the Directorate on the headquarters map. Authorize a project, then open the pub’s *experimental round*. Keep the pub running for 12 seconds and serve one control pint; the report is filed to the campaign at Norden’s claimed 0.000001% statistical deviation. The first checks count as field tests (20 IP / 15 SP); certified projects can be re-audited for 5 IP. Engineering safeguards remain mandatory. The pub’s own ledger and gameplay are unchanged.
 - **End turn:** receive resources and advance production, while the enemy damages capital integrity. Defeat the enemy before cycle 24. Capital, reliability, or political capital reaching zero ends the campaign.
-- **Endings:** win through standardization after dismissing Norden, deploy a certified weapon for scientific synergy, settle for an expensive peace, or send a first-contact reply and reach **A greeting in the dark**. Campaign starts mid-war at cycle 12.
+- **Endings:** win through standardization after dismissing Norden, deploy a certified weapon for scientific synergy, settle for an expensive peace, or answer the array and reach **A greeting in the dark**. Campaign starts mid-war at cycle 12.
+- **Background:** Vesper Reach is the enemy’s six-sun homeworld, where night falls once every 2,049 years; Vega runs the Encyclopaedia Project shipyards; the enemy commander appears in no census the Calculus can read. The dossier at the end of Dispatches lists every inspiration and where it shows up in play.
 - **The White Hart:** the pub is a department of the same page — pick it from the sidebar or walk over from the map/Research cards. The pub only runs while you are standing in it. Its ledger (save) and mechanics are retained; `white-hart.html` now just redirects into the command page.
 
 Campaign progress is archived in localStorage separately from the pub. Earlier v1 campaign archives migrate automatically; restored engagements always pause. Malformed saves fall back to a new campaign. Reset from Dispatches. This is a playable vertical slice: fleet-level tactical simulation, not individual-ship movement orders or a full grand-strategy territory simulation.
 
-Key game files: `command.css` (command interface and dark theme), `src/campaign.js` (campaign state, story, and rendering), `src/campaign-combat.js` (deterministic combat rules), `src/directorate.js` + `src/pub-annex.js` (shared pub/Directorate contract), and `tools/*.mjs` (integration and rules tests). The pub's markup lives inside `index.html`; its stylesheets (`style.css`, `pub-annex.css`) are compiled into `pub-realm.css` by `node tools/scope-pub-css.mjs` so they only apply inside the pub realm. Pub game code is unchanged apart from pausing while off-screen.
+Key game files: `src/lore.js` (the background bible: prologue, three directives, dossier, glossary), `command.css` (command interface, dark theme, introduction/coach/mission styling), `src/campaign.js` (campaign state, story, briefing, and rendering), `src/campaign-combat.js` (deterministic combat rules), `src/directorate.js` + `src/pub-annex.js` (shared pub/Directorate contract), and `tools/*.mjs` (integration and rules tests). The pub's markup lives inside `index.html`; its stylesheets (`style.css`, `pub-annex.css`) are compiled into `pub-realm.css` by `node tools/scope-pub-css.mjs` so they only apply inside the pub realm. Pub game code is unchanged apart from pausing while off-screen.
 
 ### Verification
 
@@ -30,8 +41,11 @@ node tools/combat.mjs
 node tools/campaign.mjs
 node tools/campaign-edge.mjs
 node tools/story.mjs
+node tools/tutorial.mjs
 node tools/smoke.mjs
+node tools/pub-tutorial.mjs
 node tools/apicheck.mjs
+node tools/inspect.mjs
 ```
 
 ---
@@ -54,6 +68,7 @@ There is no install, bundler, or build step. Open `index.html` directly, or serv
 - **Spend Silence Energy** on filters, microphones, a vent, reinforced casing, or the one-use Emergency Dump. Open the Vent while a safe vent rate is showing.
 - **The Landlord's Desk** sells rooms, Silencer research, staff and amenities. Swipe or use the arrows below the pub to page through rooms.
 - **Pause** with the header button or the space bar. **Long-press a patron** for patience, noise and trade. Progress saves in this browser.
+- **First Wednesday:** a returning player is spared it, but a new ledger opens with the **landlord’s briefing** — three pages on service, on Mr Fenton’s positronic apparatus and its three directives, and on the evening’s orders. The **evening’s orders** card then sits at the top of the management column and ticks off the loop as you perform it: tap a patron, pull the pint, serve them, switch a zone on, vent, and open the Landlord’s Desk. It stays as a permanent reminder of the loop — serve → silence → vent → spend → grow — and can be run again from the card.
 
 Win by reaching Silencer Tier 5 with all nine rooms open, ten Wednesdays survived, and the pantry stocked. Lose at zero reputation, three explosions, or a full minute above 95 dB.
 

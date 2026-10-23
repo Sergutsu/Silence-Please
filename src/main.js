@@ -266,7 +266,10 @@
         }
       } else if (!localStorage.getItem('silence-please-white-hart-v2') && !localStorage.getItem('silence-please-white-hart-v1')) {
         WH.ui.setCaption('Three regulars have arrived. One of them has brought a notebook and an opinion.');
-        WH.ui.toast('Wednesday, 7:00 PM', 'Serve a patron, pull a pint, then tap them again. The Silencer is already on in the General Bar. There is a cat somewhere. There is usually a cat.', 9600);
+        // A first Wednesday begins with the landlord's briefing, not with a toast.
+        if (state.tutorial && !state.tutorial.intro) WH.ui.showIntro();
+      } else if (state.tutorial && !state.tutorial.intro && state.week <= 1 && !state.weeksSurvived) {
+        WH.ui.showIntro();
       } else {
         WH.ui.toast('The White Hart is open again', 'Your ledger has been restored. The Directorate scientists are back from next door. One of them has brought a prototype.', 5500);
       }

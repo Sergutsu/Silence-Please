@@ -352,6 +352,7 @@
   }
 
   function openModal(mode, tab = null) {
+    if (mode === 'shop' && game().tourMark) game().tourMark('desk');
     modalMode = { mode, tab: tab || (TABS[mode] ? TABS[mode][0].id : null) };
     renderModal();
     const root = $('#modal-root');
@@ -570,6 +571,92 @@
       weather: s.weather
     });
     renderRoomTabs();
+    renderTour();
+  }
+
+  /* ------------------------------------------------ the evening's orders */
+  const PUB_INTRO = [
+    {
+      kicker: 'OPENING TIME',
+      title: 'The quietest pub on Fleet Street',
+      lines: [
+        'Nine rooms, fourteen kinds of regular, and one machine in the General Bar that eats noise for a living.',
+        'Service is three taps: tap a patron, pull their pint at the bar, then tap that same patron again to hand it over. Patience is short and the ghost pays in damp shillings.'
+      ],
+      sign: 'THE LANDLORD'
+    },
+    {
+      kicker: 'THE APPARATUS',
+      title: 'Mr Fenton\u2019s Silencer, and its three directives',
+      lines: [
+        'It is positronic, it is temperamental, and it was built to three directives: it may not be loud; it must store the noise it can; it must keep the pub standing. Every rule in this game comes out of that list.',
+        'A silenced room reads 0 dB, and everything it would have said is stored as Silence Energy. At 70% the tubes flicker. At 95% they tick. At 100% the housing is destroyed, the room goes dark, and the night becomes very difficult to recover from. Three of those and the pub closes.'
+      ],
+      sign: 'THE DIRECTORATE, NEXT DOOR'
+    },
+    {
+      kicker: 'THE EVENING\u2019S ORDERS',
+      title: 'Serve, silence, vent, spend, grow',
+      lines: [
+        'That is the whole loop, and it repeats every Wednesday. Silence Energy buys filters, microphones, vents and casing from the Landlord\u2019s Desk; the Desk also sells rooms, staff and amenities.',
+        'Survive ten Wednesdays with Silencer Tier V, all nine rooms open and the pantry stocked, and the pub becomes legendary. Zero reputation, three explosions, or a full minute above 95 dB closes it for good.'
+      ],
+      sign: 'THE LANDLORD'
+    }
+  ];
+  let introPage = 0;
+
+  function renderTour() {
+    const s = state();
+    const card = $('#pub-tour');
+    if (!s || !s.tutorial || !card) return;
+    const steps = game().TOUR_STEPS || [];
+    const done = s.tutorial.marks.filter((mark) => steps.some((step) => step.mark === mark)).length;
+    const complete = done >= steps.length;
+    card.classList.toggle('is-complete', complete);
+    $('#pub-tour-eyebrow').innerHTML = `${complete ? 'THE METHOD' : 'FIRST WEDNESDAY'} <span class="heading-rule"></span>`;
+    $('#pub-tour-count').textContent = `${done} / ${steps.length}`;
+    $('#pub-tour-title').textContent = complete ? 'The method is now the pub\u2019s method.' : 'How an evening is run.';
+    $('#pub-tour-steps').innerHTML = steps.map((step) => {
+      const hit = s.tutorial.marks.includes(step.mark);
+      return `<li class="${hit ? 'done' : ''}"><span class="tour-tick" aria-hidden="true">${hit ? '✓' : '◌'}</span><span>${esc(step.text)}</span></li>`;
+    }).join('');
+    const again = $('#pub-tour-again');
+    if (again) again.hidden = !complete;
+  }
+
+  function showIntro(page = 0) {
+    const root = $('#pub-intro');
+    if (!root) return;
+    introPage = Math.max(0, Math.min(page, PUB_INTRO.length - 1));
+    const entry = PUB_INTRO[introPage];
+    const last = introPage >= PUB_INTRO.length - 1;
+    root.innerHTML = `<div class="pub-intro-inner" role="document">
+      <p class="pub-intro-kicker">✦ ${esc(entry.kicker)} <span>${introPage + 1} / ${PUB_INTRO.length}</span></p>
+      <h2>${esc(entry.title)}</h2>
+      ${entry.lines.map((line) => `<p>${esc(line)}</p>`).join('')}
+      <p class="pub-intro-sign">— ${esc(entry.sign)}</p>
+      <div class="pub-intro-actions">
+        <button class="action-button primary" id="pub-intro-next" type="button">${last ? 'Open the pub →' : 'Continue →'}</button>
+        <button class="text-button" id="pub-intro-skip" type="button">Skip the briefing</button>
+      </div>
+      <div class="pub-intro-dots" aria-hidden="true">${PUB_INTRO.map((_, i) => `<i class="${i === introPage ? 'on' : ''}"></i>`).join('')}</div>
+    </div>`;
+    root.hidden = false;
+    $('#pub-intro-next').addEventListener('click', () => (last ? closeIntro() : showIntro(introPage + 1)));
+    $('#pub-intro-skip').addEventListener('click', closeIntro);
+  }
+
+  function closeIntro() {
+    const root = $('#pub-intro');
+    if (root) root.hidden = true;
+    const s = state();
+    if (s && s.tutorial) {
+      s.tutorial.intro = true;
+      game().saveState();
+    }
+    renderTour();
+    toast('Wednesday, 7:00 PM', 'The White Hart is open. The evening\u2019s orders are on the right, and the cat is somewhere.', 8000);
   }
 
   /* ----------------------------------------------------------------- bind */
@@ -583,7 +670,7 @@
     $('#vent-button').addEventListener('click', () => WH.game.toggleVenting());
     $('#dock-vent-button').addEventListener('click', () => WH.game.toggleVenting());
     $('#upgrade-button').addEventListener('click', () => openModal('shop', 'silencer'));
-    $('#shop-button').addEventListener('click', () => openModal('shop', 'rooms'));
+    $('#shop-button').addEventListener('click', () => { game().tourMark('desk'); openModal('shop', 'rooms'); });
     $('#staff-button').addEventListener('click', () => openModal('shop', 'staff'));
     $('#amenities-button').addEventListener('click', () => openModal('shop', 'amenities'));
     $('#journal-button').addEventListener('click', () => openModal('journal', 'clippings'));
@@ -638,7 +725,7 @@
   WH.ui = {
     bind, render, renderModal, renderRoomTabs, openModal, closeModal, isModalOpen,
     toast, dismissToast, achievementToast, latestClipping, tooltipAt, hideTooltip,
-    crisisNodes, setCaption,
+    crisisNodes, setCaption, renderTour, showIntro, closeIntro,
     get modalMode() { return modalMode; },
     setTabsDirty() { renderedTabsKey = ''; }
   };

@@ -100,7 +100,7 @@ export function makePixi(window, { record = false } = {}) {
   };
 }
 
-export async function bootGame(rootDir, { record = false, width = 760, height = 520 } = {}) {
+export async function bootGame(rootDir, { record = false, width = 760, height = 520, seed = null } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', (error) => {
@@ -114,6 +114,8 @@ export async function bootGame(rootDir, { record = false, width = 760, height = 
   const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
   const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole, url: 'https://whitehart.test/', pretendToBeVisual: true });
   const { window } = dom;
+  // A returning landlord: hand the browser a ledger before the pub opens.
+  if (seed) for (const [key, value] of Object.entries(seed)) window.localStorage.setItem(key, value);
   // The pub is a department of the command page; the harness stands inside it, as a player would.
   window.document.getElementById('pub-realm').hidden = false;
   window.PIXI = makePixi(window, { record });

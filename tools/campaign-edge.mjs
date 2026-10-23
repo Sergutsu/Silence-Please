@@ -25,7 +25,7 @@ function boot(archive) {
       KEY,
       typeof archive === "string" ? archive : JSON.stringify(archive),
     );
-  for (const f of ["directorate", "campaign-combat", "campaign"])
+  for (const f of ["lore", "directorate", "campaign-combat", "campaign"])
     w.eval(fs.readFileSync(`src/${f}.js`, "utf8"));
   const click = (q) => {
     const el = w.document.querySelector(q);

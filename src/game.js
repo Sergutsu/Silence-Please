@@ -77,6 +77,7 @@
       gameOver: false,
       won: false,
       ending: '',
+      tutorial: { intro: false, marks: [], hidden: false },
       tutorialExplosionAt: 0,
       chalk: C.CHALK_LINES[0],
       chalkIndex: 0,
@@ -102,6 +103,8 @@
     target.staff = { ...base.staff, ...(target.staff || {}) };
     target.amenities = { ...base.amenities, ...(target.amenities || {}) };
     target.storyFlags = { ...base.storyFlags, ...(target.storyFlags || {}) };
+    target.tutorial = { ...base.tutorial, ...(target.tutorial || {}) };
+    if (!Array.isArray(target.tutorial.marks)) target.tutorial.marks = [];
     target.achievements = Array.isArray(target.achievements) ? target.achievements : [];
     target.eggs = Array.isArray(target.eggs) ? target.eggs : [];
     if (!target.chalk) target.chalk = C.CHALK_LINES[0];
@@ -233,6 +236,33 @@
   function getClockLabel() { return U.formatClock(state.dayElapsed); }
   function setCaption(text) { const node = U.$('#scene-caption'); if (node) node.textContent = text; }
   function announce(text) { const node = U.$('#live-announcer'); if (node) node.textContent = text; }
+
+  /* The evening's orders: a first-Wednesday checklist that teaches the loop. */
+  const TOUR_STEPS = [
+    { mark: 'select', text: 'Tap a patron standing in a room.' },
+    { mark: 'pour', text: 'Pull their pint at the bar (the big button).' },
+    { mark: 'serve', text: 'Tap the same patron again to hand it over.' },
+    { mark: 'zone', text: 'Tap a room card to switch its Silencer Zone on.' },
+    { mark: 'vent', text: 'Vent the apparatus before the tubes complain.' },
+    { mark: 'desk', text: "Open the Landlord's Desk and buy something." }
+  ];
+  function tourMark(mark) {
+    if (!state || !state.tutorial || state.tutorial.marks.includes(mark)) return false;
+    state.tutorial.marks.push(mark);
+    const step = TOUR_STEPS.find((entry) => entry.mark === mark);
+    if (step && state.tutorial.marks.length === TOUR_STEPS.length) {
+      announce('The evening\u2019s orders are complete. The method is now the pub\u2019s method.');
+    }
+    saveState();
+    if (ui()) ui().renderTour();
+    return true;
+  }
+  function tourReset() {
+    if (!state) return;
+    state.tutorial = { intro: true, marks: [], hidden: false };
+    saveState();
+    if (ui()) ui().renderTour();
+  }
 
   function pushNews(tag, headline, copy, diaryId = null) {
     const clipping = { tag: `${tag} · WEDNESDAY ${String(state.week).padStart(2, '0')}`, headline, copy, time: getClockLabel() };
@@ -393,6 +423,7 @@
     }
     room.zone = !room.zone;
     addStat('zoneToggles');
+    tourMark('zone');
     const centre = scene().roomCenter(roomId);
     if (room.zone) {
       setCaption(`${def.name}: zone on. The room has become beautifully quiet, and the machine has noticed.`);
@@ -541,6 +572,7 @@
     }
     state.selectedPatron = patronId;
     state.beerReady = false;
+    tourMark('select');
     const kind = C.PATRONS[patron.type];
     setCaption(`${patron.name} · ${kind.label}. ${kind.noise} dB of conversation. ${Math.ceil(patron.patience)} seconds of patience, give or take an anecdote.`);
     WH.audio.play('select');
@@ -552,6 +584,7 @@
     const patron = state.patrons.find((entry) => entry.id === state.selectedPatron);
     if (!patron || state.beerReady) return;
     state.beerReady = true;
+    tourMark('pour');
     const point = scene().patronPoint(patron.id);
     WH.audio.play('pour');
     if (!U.reduceMotion()) {
@@ -581,6 +614,7 @@
     addStat('patronsServed');
     state.reputation = Math.min(100, state.reputation + (servedType === 'inspector' ? 2 : 0.25));
     const roomId = patron.roomId;
+    tourMark('serve');
     state.patrons.splice(index, 1);
     state.selectedPatron = null;
     state.beerReady = false;
@@ -1722,6 +1756,7 @@
   }
 
   function toggleVenting() {
+    tourMark('vent');
     if (ventRate() <= 0) {
       ui().toast('No vent fitted', 'Fit a Venting System or improve the Silencer before opening the outlet.');
       ui().openModal('shop', 'silencer');
@@ -1827,7 +1862,7 @@
   }
 
   WH.game = {
-    boot, startNewGame, tick, saveState,
+    boot, startNewGame, tick, saveState, tourMark, tourReset, TOUR_STEPS,
     get state() { return state; },
     set state(value) { state = value; },
     // helpers
