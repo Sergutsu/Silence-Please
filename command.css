@@ -1829,6 +1829,19 @@ body.pub-mode #pub-laboratory { width: 100%; max-width: none; margin: 0; padding
     body.pub-mode #pub-realm .app-shell { padding-left: max(9px, env(safe-area-inset-left)); padding-right: max(9px, env(safe-area-inset-right)); }
   }
 }
+/* On a landscape/short desktop the fixed rail has less vertical room than its
+   contents. Do not let the shrinking footer paint through the White Hart row. */
+@media (max-height: 820px) and (min-width: 651px) {
+  .sidebar { overflow-y: auto; }
+  .command-label { margin-top: 24px; margin-bottom: 8px; }
+  .sidebar nav button,
+  .sidebar nav a { min-height: 38px; padding-block: 8px; }
+  .sidebar .nav-divider { margin-block: 9px 7px; }
+  .sidebar .annex-note { margin-block: 8px 0; }
+  .sidebar-bottom { flex: 0 0 auto; padding-top: 10px; }
+  .sidebar-bottom p { display: none; }
+  .sidebar-bottom .connection { margin-top: 8px; padding-top: 12px; }
+}
 @media (max-height: 560px) and (min-width: 651px) {
   .topbar { height: 54px; }
   .workspace > main { padding-top: 14px; }

@@ -30,7 +30,13 @@ function transform(css) {
     const prefix = comments.join('\n') + (comments.length ? '\n' : '');
     if (head.startsWith('@')) {
       const keepAsIs = /^@(keyframes|font-face|-webkit-keyframes)/.test(head);
-      out += prefix + head + ' {' + (keepAsIs ? body : transform(body)) + '}';
+      // The scoped pub can be narrower than the viewport because the command
+      // sidebar remains beside it. Width media queries must therefore become
+      // queries against the .pub-realm container itself.
+      const scopedHead = /^@media\s*\(\s*(?:max|min)-width\s*:/.test(head)
+        ? head.replace(/^@media/, '@container pub-realm')
+        : head;
+      out += prefix + scopedHead + ' {' + (keepAsIs ? body : transform(body)) + '}';
     } else {
       const selectors = barePrelude.split(',').map(scopeSelector).join(', ');
       out += prefix + selectors + ' {' + body + '}';

@@ -27,6 +27,9 @@ html { min-width: 0; min-height: 100%; background: #111914; }
 body {
   min-width: 0;
   min-height: 100vh;
+  /* In the command terminal the pub shares the viewport with a sidebar. Its
+     breakpoints must follow the room it actually gets, not the outer window. */
+  container: pub-realm / inline-size;
   margin: 0;
   background:
     radial-gradient(ellipse at 12% 9%, rgba(77, 100, 70, .18), transparent 27rem),
@@ -494,11 +497,13 @@ body.shake-screen .app-shell { animation: screenShake .4s linear 3; }
 
 @media (max-width: 1120px) {
   .app-shell { width: min(100% - 32px, 1000px); }
+  .masthead { grid-template-columns: minmax(250px, 1fr) minmax(250px, .9fr) auto; gap: 14px; }
   .game-layout { grid-template-columns: minmax(0, 1.45fr) minmax(290px, .9fr); gap: 14px; }
   .stage-inner { height: clamp(350px, 52svh, 620px); }
 }
 @media (max-width: 860px) {
   .app-shell { width: min(100% - 26px, 760px); }
+  .masthead { grid-template-columns: 1fr auto; gap: 10px 14px; padding-bottom: 15px; }
   .game-layout { grid-template-columns: 1fr; }
   .stage-inner { height: clamp(370px, 60svh, 630px); }
 }

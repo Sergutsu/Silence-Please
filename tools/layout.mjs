@@ -59,7 +59,7 @@ const PUB_STOPS = new Set(["1120", "860", "540", "380"]);
    `min-width: 651px`), so a min-width one pixel above a known stop counts as the
    same step. */
 const stopsIn = (text) =>
-  [...text.matchAll(/@(?:media[^{]*?)\(\s*(max|min)-width:\s*(\d+)px\s*\)/g)].map((m) => ({
+  [...text.matchAll(/@(?:(?:media|container)[^{]*?)\(\s*(max|min)-width:\s*(\d+)px\s*\)/g)].map((m) => ({
     dir: m[1],
     px: m[2],
   }));
@@ -81,6 +81,9 @@ test("the pub steps at one set of widths, annex included", () => {
   // at-rules (never `.pub-realm @media`) and carry every authored stop.
   const compiled = stopsIn(realmCss);
   assert.doesNotMatch(realmCss, /\.pub-realm\s+@(?:media|supports|container)\b/, "a pub at-rule was corrupted into a selector");
+  assert.match(realmCss, /\.pub-realm \{[^}]*container: pub-realm \/ inline-size;/, "the embedded pub needs its own size container");
+  assert.doesNotMatch(realmCss, /@media[^{}]*\((?:max|min)-width:/, "embedded pub widths must follow its container, not the outer window");
+  assert.ok((realmCss.match(/@container pub-realm/g) || []).length >= 9, "compiled width rules should be container queries");
   assert.deepEqual(compiled, used, "pub-realm.css lost or added a responsive stop");
   assert.equal(
     offGrid(compiled, PUB_STOPS).map((s) => `${s.dir}-width: ${s.px}px`).join(", "),
@@ -186,6 +189,15 @@ test("the coach stands down mid-engagement instead of covering the battle", () =
   } finally {
     g.close();
   }
+});
+
+test("a short command rail cannot paint its footer through the White Hart button", () => {
+  const start = commandCss.indexOf("@media (max-height: 820px) and (min-width: 651px)");
+  const shortRail = commandCss.slice(start, commandCss.indexOf("@media", start + 1));
+  assert.ok(start > -1, "missing the short-rail layout");
+  assert.match(shortRail, /\.sidebar \{ overflow-y: auto; \}/, "the rail must remain reachable when it is taller than the window");
+  assert.match(shortRail, /\.sidebar-bottom \{ flex: 0 0 auto;/, "the footer must not shrink through the navigation");
+  assert.match(shortRail, /\.sidebar-bottom p \{ display: none; \}/, "the decorative slogan should yield before the navigation does");
 });
 
 /* --- the panels the interface adds must follow the same stops -------------- */

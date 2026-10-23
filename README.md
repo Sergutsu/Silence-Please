@@ -32,13 +32,14 @@ Both screens step at one set of widths, and nothing is allowed to invent its own
 | Supreme Command | 1450 · 1150 · 950 · 650 · 380 |
 | The White Hart (and its laboratory annex) | 1120 · 860 · 540 · 380 |
 
-What that buys you as the window narrows: the five readouts go 5 → 3 across before they get cramped, the mission panel stacks under its own order at 1150px and its six loop buttons go 3-up then 2-up, the dossier and research cards re-fit instead of pushing the page sideways, the sidebar becomes a top rail at 650px, and buttons in the mission order go full width on a phone.
+What that buys you as the window narrows: the five readouts go 5 → 3 across before they get cramped, the mission panel stacks under its own order at 1150px and its six loop buttons go 3-up then 2-up, the dossier and research cards re-fit instead of pushing the page sideways, the sidebar becomes a top rail at 650px, and buttons in the mission order go full width on a phone. The embedded pub measures its own available width—not the outer browser window—because the command sidebar still occupies part of that window.
 
-Three guarantees are enforced rather than hoped for, and `tools/layout.mjs` fails the build if any of them breaks:
+Four guarantees are enforced rather than hoped for, and `tools/layout.mjs` fails the build if any of them breaks:
 
+- **Breakpoints measure the screen they lay out.** The scoped White Hart sheet compiles width rules to container queries, so its 860px layout activates when the pub itself has 860px even if the outer window is wider.
 - **No track wider than its box.** Every `auto-fit` grid uses `minmax(min(Npx, 100%), 1fr)`, so a narrow dialog can never be forced into horizontal scrolling.
 - **A tall card keeps its own top.** The prologue, the landlord's briefing and the crisis screen centre with flex plus `margin: auto` instead of `place-items: center`, which clips whatever sticks out above a short viewport.
-- **Nothing is painted over.** The tutorial coach measures itself and publishes `body.coach-open` and `--coach-h`, so the workspace keeps room for it at the bottom and the toast moves up under the top bar instead of vanishing behind the card; the coach stands down entirely during an engagement.
+- **Nothing is painted over.** The tutorial coach measures itself and publishes `body.coach-open` and `--coach-h`, so the workspace keeps room for it at the bottom and the toast moves up under the top bar instead of vanishing behind the card; the coach stands down entirely during an engagement. On a short desktop, the sidebar slogan yields and the rail scrolls instead of shrinking its footer through the White Hart button.
 
 ## First ten minutes
 
