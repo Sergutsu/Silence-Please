@@ -1,101 +1,99 @@
-/* Plays the pub with a simple policy to see whether the economy actually holds together. */
+/* Balance bench: plays the twenty-four steps with the Autopilot and an active click,
+   then prints a step-by-step ledger. `node tools/balance.mjs . 3` runs three phases. */
+import fs from 'node:fs';
 import path from 'node:path';
-import { bootGame } from './harness.mjs';
 
-const ROOT = process.argv[2] || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const WEEKS = Number(process.argv[3] || 14);
+const ROOT = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const PHASES = Math.max(1, Number(process.argv[3] || 1));
 
-const { window, WH, step, errors } = await bootGame(ROOT, { width: 900, height: 620 });
+const store = new Map();
+globalThis.window = globalThis;
+globalThis.localStorage = {
+  getItem: (key) => (store.has(key) ? store.get(key) : null),
+  setItem: (key, value) => store.set(key, String(value)),
+  removeItem: (key) => store.delete(key),
+};
+const load = (file) => (0, eval)(fs.readFileSync(path.join(ROOT, file), 'utf8'));
+load('src/util.js');
+load('src/content.js');
+load('src/idle.js');
+const A = globalThis.ASIdle;
 
-// main.js derives dt from performance.now(), so give it a virtual clock: a week of
-// Wednesday service then costs a few hundred frames instead of thirty real seconds.
-let virtualNow = 1000;
-window.performance.now = () => virtualNow;
-const st = () => WH.game.state;
-const C = WH.content;
+let seed = 20261025;
+Math.random = () => {
+  seed = (seed * 1664525 + 1013904223) >>> 0;
+  return seed / 4294967296;
+};
 
-let explosions = 0;
-let lastWeek = st().week;
-let lastExplosions = st().explosions;
-const log = [];
+const pad = (value, width) => String(value).padEnd(width);
+const left = (value, width) => String(value).padStart(width);
 
-function serveSomeone() {
-  const state = st();
-  const selected = state.patrons.find((p) => p.id === state.selectedPatron);
-  if (state.beerReady && selected) {
-    WH.game.selectPatron(selected.id);   // the second tap serves
-    return;
+function runPhase(state, label) {
+  const startedAt = state.runSeconds;
+  let step = state.step;
+  let lastAt = 0;
+  const rows = [];
+  const dt = 0.25;
+  let guard = 0;
+  const limit = 90 * 60;
+  while (state.step < 24 && state.runSeconds - startedAt < limit) {
+    A.act(state, 'click');
+    A.tick(state, dt);
+    guard += 1;
+    if (state.step !== step) {
+      const d = A.derive(state);
+      rows.push({
+        step: state.step,
+        title: A.stepDef(state.step).title,
+        seconds: state.runSeconds - startedAt - lastAt,
+        total: state.runSeconds - startedAt,
+        ip: d.ipPerSec,
+        sp: d.spPerSec,
+        ships: state.fleet.ships,
+        enemy: state.fleet.enemy,
+        capital: state.fleet.capital,
+        unrest: state.fleet.unrest,
+      });
+      lastAt = state.runSeconds - startedAt;
+      step = state.step;
+    }
+    if (guard > 400000) break;
   }
-  const waiting = state.patrons
-    .filter((p) => !p.leaving)
-    .sort((a, b) => a.patience - b.patience)[0];
-  if (!waiting) return;
-  WH.game.selectPatron(waiting.id);
-  WH.game.pourSelectedPint();
-}
-
-function manageZones() {
-  const state = st();
-  const ratio = state.energy / WH.game.capacity();
-  const open = C.ROOM_DEFS.filter((room) => state.rooms[room.id].unlocked && !state.rooms[room.id].damaged);
-  if (ratio > 0.9) {
-    // Turn off the quietest active zone to let the machine breathe.
-    const on = open.filter((room) => WH.game.zoneIsOn(room.id)).sort((a, b) => WH.game.roomNoise(a.id) - WH.game.roomNoise(b.id));
-    if (on.length > 1) WH.game.toggleZone(on[0].id);
-    else if (on.length === 1 && ratio > 0.96) WH.game.toggleZone(on[0].id);
-  } else if (ratio < 0.72) {
-    open.forEach((room) => { if (!WH.game.zoneIsOn(room.id)) WH.game.toggleZone(room.id); });
-  }
-  if (state.venting !== (ratio > 0.8)) WH.game.toggleVenting();
-}
-
-function spend() {
-  const state = st();
-  const locked = C.ROOM_DEFS.find((room) => !state.rooms[room.id].unlocked && room.id !== 'green');
-  C.ROOM_DEFS.forEach((room) => { if (state.rooms[room.id].damaged) WH.game.tryRebuildRoom(room.id); });
-  if (WH.game.buyTier(state.tier + 1)) return;
-  if (locked) {
-    if (WH.game.tryUnlockRoom(locked.id)) return;
-    // Save up for the next room rather than spending the takings on trinkets.
-    if (state.resources.pints < locked.cost + 400) return;
-  }
-  C.SE_UPGRADES.forEach((entry) => { if (entry.id !== 'dump') WH.game.buySEUpgrade(entry.id); });
-  C.STAFF_DEFS.forEach((entry) => {
-    if (WH.game.upgradeCount(entry.id) < (entry.max || 99) && state.resources.pints > 400) WH.game.buyStaff(entry.id);
+  const total = state.runSeconds - startedAt;
+  const d = A.derive(state);
+  console.log(`\n${label}`);
+  console.log('─'.repeat(96));
+  console.log(`${pad('STEP', 6)}${pad('MECHANIC', 24)}${left('SPENT', 8)}${left('ELAPSED', 10)}${left('IP/SEC', 11)}${left('SCI/SEC', 10)}${left('CRUISERS', 10)}`);
+  rows.forEach((row) => {
+    console.log(
+      `${pad(String(row.step).padStart(2, '0'), 6)}${pad(row.title, 24)}` +
+      `${left(`${row.seconds.toFixed(0)}s`, 8)}${left(`${(row.total / 60).toFixed(1)}m`, 10)}` +
+      `${left(A.fmt(row.ip), 11)}${left(A.fmt(row.sp), 10)}${left(A.fmt(row.ships), 10)}`,
+    );
   });
-  C.AMENITY_DEFS.forEach((entry) => {
-    if (state.resources.pints > 500 && WH.game.upgradeCount(entry.id) < (entry.max || 99)) WH.game.buyAmenity(entry.id);
-  });
-}
-
-const dt = 1 / 20;
-let decisionClock = 0;
-let spendClock = 0;
-const startedAt = Date.now();
-let frames = 0;
-
-while (!st().won && !st().gameOver && st().week <= WEEKS) {
-  virtualNow += dt * 1000;
-  step(1, dt * 1000);
-  frames += 1;
-  if (frames > 200000) { log.push('  (frame cap reached)'); break; }
-  decisionClock += dt;
-  spendClock += dt;
-  if (decisionClock >= 0.35) { decisionClock = 0; serveSomeone(); manageZones(); }
-  if (spendClock >= 2) { spendClock = 0; spend(); }
-  if (st().week !== lastWeek) {
-    lastWeek = st().week;
-    const s = st();
-    log.push(`  week ${String(s.week).padStart(2, '0')} · tier ${s.tier} · rep ${s.reputation.toFixed(0)} · pints ${Math.floor(s.resources.pints)} · research ${Math.floor(s.resources.research)} · rooms ${C.ROOM_DEFS.filter((r) => s.rooms[r.id].unlocked).length} · explosions ${s.explosions}`);
+  console.log('─'.repeat(96));
+  console.log(
+    `${pad('DONE', 6)}${pad(state.step >= 24 ? 'The Reckoning' : 'STALLED', 24)}` +
+    `${left('', 8)}${left(`${(total / 60).toFixed(1)}m`, 10)}${left(A.fmt(d.ipPerSec), 11)}${left(A.fmt(d.spPerSec), 10)}${left(A.fmt(state.fleet.ships), 10)}`,
+  );
+  console.log(`forecast on offer: ${A.prestigeGain(state)} · kills ${state.totals.kills} · tests ${state.totals.tests} · checks ${state.totals.checks} · rooms ${Object.keys(state.pub.rooms).length}`);
+  if (state.step < 24) {
+    console.log(`stalled at step ${state.step}: ${A.stepDef(state.step).title} — ${A.stepInfo(state).goal.label} ${A.fmt(A.stepInfo(state).goal.value)} / ${A.fmt(A.stepInfo(state).goal.target)}`);
   }
-  if (st().explosions !== lastExplosions) { lastExplosions = st().explosions; explosions += 1; }
+  return { total, gain: A.prestigeGain(state), complete: state.step >= 24 };
 }
 
-const s = st();
-console.log(log.join('\n'));
-console.log(`\nweeks played: ${s.week} · won: ${Boolean(s.won)} · game over: ${Boolean(s.gameOver)}`);
-console.log(`tier ${s.tier} · reputation ${s.reputation.toFixed(1)} · explosions ${s.explosions} · weeks survived ${s.weeksSurvived}`);
-console.log(`resources: pints ${Math.floor(s.resources.pints)} · scoops ${Math.floor(s.resources.scoops)} · manuscripts ${Math.floor(s.resources.manuscripts)} · research ${Math.floor(s.resources.research)} · loyalty ${Math.floor(s.resources.loyalty)}`);
-console.log(`achievements ${s.achievements.length}/${C.ACHIEVEMENTS.length} · eggs ${s.eggs.length} · served ${s.stats.patronsServed} patrons for ${Math.floor(s.stats.pintsServed)} pints · lost ${s.stats.patronsLost}`);
-console.log(`${frames} frames (${(frames * dt).toFixed(0)} game seconds) in ${(Date.now() - startedAt) / 1000}s of wall clock; ${errors.length} runtime errors`);
-if (errors.length) console.log([...new Set(errors)].slice(0, 5).join('\n'));
+let state = A.newGame();
+state.seen.intro = true;
+for (let phase = 1; phase <= PHASES; phase += 1) {
+  const result = runPhase(state, `PHASE ${phase} · from step 01`);
+  if (!result.complete) break;
+  if (phase === PHASES) {
+    console.log(`\nA first forecast finishes in ${(result.total / 60).toFixed(1)} minutes with ${result.gain} Forecast.\n`);
+    break;
+  }
+  const prestige = A.act(state, 'prestige');
+  if (!prestige.ok) { console.error('prestige failed', prestige.msg); break; }
+  state = prestige.state;
+  state.seen.intro = true;
+}
