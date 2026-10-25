@@ -68,7 +68,7 @@ Nothing from the old campaign was dropped; each system became a clicker or idle 
 | Military unrest and mutiny | Unrest rises with losses and endorsements; mutiny halves output until revision funding |
 | Norden vs standardization | Two doctrines with mastery levels and a switching cost |
 | Three listening passes, reply or silence | Passive listening passes, a manual listen shortcut, and a permanent branch reward |
-| Pub: patrons, pints, zones, noise, SE, tiers, upgrades, staff, rooms, weather, checks | An idle annex with the same nouns, automatic service, a noise meter, venting, tier upgrades and repeatable prototype checks |
+| Pub: patrons, pints, zones, noise, SE, tiers, upgrades, staff, rooms, weather, checks, easter eggs | An idle annex with the same nouns, automatic service, a noise meter, venting, tier upgrades, repeatable prototype checks and typed hidden words |
 | Win by cycle 24 | Finish step 24 and prestige into the next phase |
 
 The scripted defeats of the old game (capital zero, mutiny, zero political capital) have become **setbacks**, not resets: capital zero cuts output until emergency powers are found, mutiny halves it until revisions are funded, and the run always remains playable.
@@ -94,7 +94,7 @@ Sorties resolve every six seconds: firepower against enemy power, with losses on
 
 ### The White Hart
 
-At step 22 the pub returns as an idle department rather than a second game. Pints accrue from patrons; noise accrues from patrons and the weather; absorption converts noise into **Silence Energy**; venting converts the rest. SE buys filters, microphones, absorbers, venting, a resonator, reinforced casing and an emergency dump. Pints buy rooms, staff, amenities and Silencer tiers. The pub's dividend — +3% output per SE upgrade, +4% per staff member, +3% per amenity, +3% per tier — feeds the whole terminal, and its prototype checks convert IP and SP into SE, science and reputation. Neglect it and the Silencer explodes: 40% of stored SE and some reputation.
+At step 22 the pub returns as an idle department rather than a second game. Pints accrue from patrons; noise accrues from patrons and the weather; absorption converts noise into **Silence Energy**; venting converts the rest. SE buys filters, microphones, absorbers, venting, a resonator, reinforced casing and an emergency dump. Pints buy rooms, staff, amenities and Silencer tiers. The pub's dividend — +3% output per SE upgrade, +4% per staff member, +3% per amenity, +3% per tier — feeds the whole terminal, and its prototype checks convert IP and SP into SE, science and reputation. Neglect it and the Silencer explodes: 40% of stored SE and some reputation. The pub also still answers to a few old words — type `pint`, `cheese`, `purvis`, `42` or `moom` while the terminal has focus, once per phase each, for a small gift and a line of dialogue.
 
 ### Step 24: prestige only
 
@@ -123,12 +123,12 @@ The test bench is optional and needs one dev package:
 
 ```sh
 npm install --no-save --package-lock=false jsdom
-node tools/idle.mjs      # engine: 161 checks, no browser required
-node tools/ui.mjs        # interface: 84 checks, jsdom
+node tools/idle.mjs      # engine: 170 checks, no browser required
+node tools/ui.mjs        # interface: 90 checks, jsdom
 node tools/balance.mjs . 2   # step-by-step pacing for two phases
 ```
 
-`idle.mjs` covers the shape of the 24-step ladder, clicking, buying, all three economies, research/hearings/certification, combat/field/analyzer, unrest/doctrine/array/ceding, the pub, a complete run from step 01 to 24, prestige and remembrance, save/load, offline catch-up with a cap, malformed archives, and every order handlable without a crash.
+`idle.mjs` covers the shape of the 24-step ladder, clicking, buying, all three economies, research/hearings/certification, combat/field/analyzer, unrest/doctrine/array/ceding, the pub and its hidden words, a complete run from step 01 to 24, prestige and remembrance, save/load, offline catch-up with a cap, malformed archives, and every order handlable without a crash.
 
 `ui.mjs` boots the real page in jsdom and checks the introduction, the rail, clicking, DOM purchases, later departments appearing at their steps, the annex, that **step 24 shows only the reckoning**, prestige, reloading an archive, the offline report, the briefing/restart dialogs, keyboard input, a long quiet session and the absence of console errors.
 

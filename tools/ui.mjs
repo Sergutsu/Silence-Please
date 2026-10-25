@@ -137,6 +137,17 @@ const seBefore = s.se;
 env.frames(10, 250);
 assert(s.se >= seBefore, 'the annex produces Silence Energy while idling');
 
+/* ---------------------------------------------------------- hidden words */
+section('the pub still answers to the old names');
+s.step = 22;
+s.seen = {};
+const pintsBefore = s.pints;
+for (const letter of 'pint') env.key(letter);
+assert(s.pints >= pintsBefore + 30, 'typing a hidden word pays out');
+assert(/One for the road/.test(document.querySelector('#toasts').textContent), 'the word is acknowledged');
+for (const letter of 'pint') env.key(letter);
+assert(s.pints < pintsBefore + 60, 'the same word only answers once per phase');
+
 /* --------------------------------------------------------------- prestige */
 section('step 24 is the reckoning and nothing else');
 s.step = 24;

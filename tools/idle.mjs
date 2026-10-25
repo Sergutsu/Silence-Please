@@ -294,6 +294,17 @@ localStorage.setItem(A.SAVE_KEY, JSON.stringify(cappedRaw));
 const cappedBack = A.load();
 assert(cappedBack && cappedBack.offlineReport.seconds <= A.OFFLINE_BASE_HOURS * 3600 + 1, 'a long absence is capped');
 
+/* ------------------------------------------------------------- hidden words */
+section('the pub still answers to the old names');
+const whisper = fresh();
+const pintWord = A.act(whisper, 'egg', 'pint');
+assert(pintWord.ok && whisper.pints >= 30, 'a hidden word pays out');
+assert(!A.act(whisper, 'egg', 'pint').ok, 'the same word is spent for the phase');
+assert(A.act(whisper, 'egg', '42').ok && whisper.sp >= 42, 'another word answers differently');
+assert(!A.act(whisper, 'egg', 'nonsense').ok, 'unknown words are ignored');
+A.tick(whisper, 0.2);
+assert(whisper.achievements.includes('word-cellar'), 'a hidden word is an achievement');
+
 /* --------------------------------------------------------------- robustness */
 section('every order resolves');
 const fuzz = fresh();
@@ -314,7 +325,7 @@ const orders = [
   ['policy', 'autopilot'], ['pub-room', 'saloon'], ['pub-staff', 'barmaid'], ['pub-amenity', 'betterBeer'],
   ['pub-upgrade', 'filters'], ['pub-tier'], ['pub-vent'], ['pub-check'], ['prestige-upgrade', 'memory'],
   ['hearing', { index: 0, choice: 'revise' }], ['dismiss-event'], ['research', 0], ['test', 0], ['certify', 0],
-  ['nonsense'],
+  ['egg', 'moom'], ['egg', 'nonsense'], ['nonsense'],
 ];
 orders.forEach(([action, id]) => {
   let result;

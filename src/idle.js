@@ -179,6 +179,23 @@
     { id: 'storm', name: 'STORM', note: 'A storm. The apparatus enjoys thunder enormously.', pints: 0.85, noise: 1.25, se: 1.1 },
   ];
 
+  /* Hidden words: the White Hart still answers to the old names. Typed once each phase. */
+  const EGGS = [
+    { word: 'purvis', title: 'Harry Purvis', line: '“You can’t destroy energy, old boy. You can only move it somewhere else.”', apply: (s) => { const ip = Math.max(60, derive(s).ipPerSec * 45); s.ip += ip; s.totals.ip += ip; return `+${fmt(ip)} IP`; } },
+    { word: 'fenton', title: 'Something in the cellar', line: 'A valve turns by itself. Somewhere below you, a man clears his throat.', apply: (s) => { s.se += 35; s.totals.se += 35; s.pub.noise = Math.min(100, s.pub.noise + 4); return '+35 SE'; } },
+    { word: 'silence', title: 'A hush', line: 'Everybody shushes at once. For ten seconds the terminal is a photograph.', apply: (s) => { s.pub.noise = Math.max(0, s.pub.noise - 12); return 'noise −12'; } },
+    { word: 'hush', title: 'A hush', line: 'The regulars shush, then look around to see who started it.', apply: (s) => { s.pub.noise = Math.max(0, s.pub.noise - 8); return 'noise −8'; } },
+    { word: 'tea', title: 'A pot of tea', line: 'A pot arrives. It is, technically, a vessel in orbit.', apply: (s) => { s.pc += 4; return '+4 PC'; } },
+    { word: 'pint', title: 'One for the road', line: 'Somebody puts a pint in front of you. Nobody will admit to it.', apply: (s) => { s.pints += 30; s.totals.pints = num(s.totals.pints, 0) + 30; return '+30 pints'; } },
+    { word: '42', title: 'The answer', line: 'The answer is 42. The question, apparently, was about the cellar.', apply: (s) => { s.sp += 42; s.totals.sp += 42; return '+42 SP'; } },
+    { word: 'kendell', title: 'Kendell is cross', line: 'Kendell is cross. Somewhere, a soprano clears her throat.', apply: (s) => { s.pub.noise = Math.min(100, s.pub.noise + 10); s.pints += 12; return '+12 pints, and the alto section' } },
+    { word: 'wibble', title: 'Wibble', line: 'The landlord refuses to explain. “Wibble,” he says, “is a technical term.”', apply: (s) => { s.pints += 8; return '+8 pints' } },
+    { word: 'cheese', title: 'The cheese board', line: 'A wedge of cheese appears. Noise drops by sheer authority.', apply: (s) => { s.pub.noise = Math.max(0, s.pub.noise - 9); s.fleet.unrest = Math.max(0, s.fleet.unrest - 4); return 'noise −9, unrest −4' } },
+    { word: 'cat', title: 'The cat', line: 'The cat arrives from an unspecified department.', apply: (s) => { s.se += 18; s.totals.se += 18; return '+18 SE' } },
+    { word: 'wednesday', title: 'It is Wednesday', line: 'It is always Wednesday here. The clock has made peace with this.', apply: (s) => { s.pc += 6; return '+6 PC' } },
+    { word: 'moom', title: 'Moom', line: '“Moom,” says the apparatus, thoughtfully.', apply: (s) => { s.sp += 2; s.se += 4; return '+2 SP, +4 SE' } },
+  ];
+
   const MOMENTS = [
     {
       id: 'windfall', title: 'A requisition convoy has arrived', cta: 'Sign for it',
@@ -242,6 +259,7 @@
     { id: 'thousand-ip', name: 'A Rounding Error', note: 'Earn 1,000 IP in one phase.', test: (s) => s.totals.ip >= 1000 },
     { id: 'million-ip', name: 'The Calculus Notices', note: 'Earn one million IP in one phase.', test: (s) => s.totals.ip >= 1e6 },
     { id: 'ten-ships', name: 'Standard, And Therefore Winning', note: 'Have ten cruisers at once.', test: (s) => s.fleet.ships >= 10 },
+    { id: 'word-cellar', name: 'A Word in the Cellar', note: 'Say something the White Hart recognises.', test: (s) => Object.keys(s.seen).some((key) => key.startsWith('egg:')) },
     { id: 'first-blood', name: 'An Exchange Of Views', note: 'Destroy your first enemy vessel.', test: (s) => s.totals.kills >= 1 },
     { id: 'certified', name: 'The Second Directive', note: 'Certify all three prototypes.', test: (s) => s.research.every((r) => r.state === 3) },
     { id: 'answered', name: 'A Greeting In The Dark', note: 'Answer the Quiet Array.', test: (s) => Boolean(s.signal.choice) },
@@ -1803,6 +1821,16 @@
       case 'overhaul': return overhaulFleet(s, true);
       case 'reform': return bureaucraticReform(s, true);
       case 'emergency': return emergency(s);
+      case 'egg': {
+        const egg = EGGS.find((entry) => entry.word === id);
+        if (!egg) return { ok: false, msg: 'The pub does not answer to that.' };
+        const key = `egg:${egg.word}`;
+        if (s.seen[key]) return { ok: false, msg: 'It has already been said this phase.' };
+        s.seen[key] = true;
+        const result = egg.apply(s);
+        say(s, `${egg.title.toUpperCase()} — ${egg.line} (${result})`, 'good');
+        return { ok: true, msg: `${egg.title}: ${result}`, egg: egg.title };
+      }
       case 'cede': return cedeOutpost(s);
       case 'doctrine': return setDoctrine(s, id);
       case 'listen': return listen(s, true);
@@ -1973,7 +2001,7 @@
   window.ASIdle = {
     VERSION, SAVE_KEY, STEP_COUNT, STEP_DEFS, GENS, LABS, CONS, PROJECTS, UPGRADES,
     PRESTIGE_UPGRADES, PUB_STAFF, PUB_AMENITIES, PUB_UPGRADES, PUB_TIERS, WEATHERS,
-    MOMENTS, ACHIEVEMENTS, OFFLINE_BASE_HOURS, LEGACY_KEYS,
+    MOMENTS, ACHIEVEMENTS, EGGS, OFFLINE_BASE_HOURS, LEGACY_KEYS,
     newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown,
     prestigeUpgradeCost: (s, def) => def.cost[Math.min(num(s.forecastUp[def.id], 0), def.cost.length - 1)],
     forecastMult, globalMult, upgradeCost, upgradeLevel, bulkCost, maxAffordable,

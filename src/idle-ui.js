@@ -23,6 +23,7 @@
   let audio = null;
   let soundOn = false;
   let ui = { open: {}, floatTimer: 0 };
+  let eggBuffer = '';
   const cardHtml = new WeakMap();
 
   try { soundOn = localStorage.getItem('as-idle-sound') === 'on'; } catch (_) { soundOn = false; }
@@ -727,7 +728,7 @@
         <li><strong>Steps 1–24</strong> advance the moment their order is complete. The rail on the left always shows where you are.</li>
         <li><strong>Research</strong> authorises three prototypes; tests cost SP; failures file hearings; safeguards certify them.</li>
         <li><strong>Combat</strong> runs itself every six seconds. Formations and targeting change the arithmetic.</li>
-        <li><strong>The White Hart</strong> is an idle department: pints, patrons, noise, Silence Energy and prototype checks.</li>
+        <li><strong>The White Hart</strong> is an idle department: pints, patrons, noise, Silence Energy and prototype checks. It also answers to a few old words if you type them; the landlord will not explain which.</li>
         <li><strong>Step 24</strong> is prestige only. Take your Forecast, spend it on permanent remembrance, and open the next phase.</li>
       </ul>
       <h3>The twenty-four steps</h3>
@@ -928,8 +929,25 @@
       if (event.code === 'Space') {
         event.preventDefault();
         handleAction('click');
-      } else if (event.key === 'h' || event.key === '?') {
+        return;
+      }
+      if (event.key === 'h' || event.key === '?') {
         helpModal();
+        return;
+      }
+      if (/^[a-z0-9]$/i.test(event.key)) {
+        eggBuffer = (eggBuffer + event.key.toLowerCase()).slice(-24);
+        const words = A.EGGS || [];
+        const hit = words.find((egg) => eggBuffer.endsWith(egg.word));
+        if (hit) {
+          eggBuffer = '';
+          const result = A.act(s, 'egg', hit.word);
+          if (result.ok) {
+            toast(hit.title, hit.line, 'good');
+            beep(660, 0.12, 'sine', 0.03);
+            renderAll();
+          }
+        }
       }
     });
 
