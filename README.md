@@ -2,7 +2,7 @@
 
 A twenty-four step **clicker and idle** campaign about a falling frontier, three directives that machines cannot escape, and one question that has been asked for ten thousand years.
 
-The old turn-based strategy campaign is gone. Every mechanic it had — industry, science, politics, shipyards, reliability, chaos, prototypes, field tests, hearings, safeguards, sorties, formations, targeting, wonder weapons, the exponential field, the enemy analyzer, capital defence, unrest, doctrine, the Quiet Array, the White Hart annex and total victory — has been rebuilt as a click, a generator, a timer, a policy or a purchase. The run is exactly **twenty-four steps**: it opens on step 01 and ends on step 24, which is **prestige and nothing else**, opening the next phase with permanent Forecast.
+The old Supreme Command terminal is still here — the same sidebar departments, the same top bar, the same page headings, the same Orion star map, the same tactical bridge and the same White Hart — and the turn-based campaign underneath it has been rebuilt as clicks, generators, timers, policies and purchases. Nothing from the old game was deleted; every mechanic became an idle form of itself: industry, science, politics, shipyards, reliability, chaos, prototypes, field tests, hearings, safeguards, sorties, formations, targeting, wonder weapons, the exponential field, the enemy analyzer, capital defence, unrest, doctrine, the Quiet Array, the White Hart annex and total victory. The run is exactly **twenty-four steps**: it opens on step 01 and ends on step 24, which is **prestige and nothing else**, opening the next phase with permanent Forecast.
 
 **Play:** serve the folder, then open `index.html`.
 
@@ -51,9 +51,9 @@ The rail on the left always shows where you are. A step completes the moment its
 
 Nothing from the old campaign was dropped; each system became a clicker or idle form.
 
-| Was (turn-based) | Is (clicker / idle) |
+| Was (turn-based) | Is (clicker / idle), in the same room |
 | --- | --- |
-| End turn, +40 IP / +15 SP / +3 PC | Generators, labs and consulates produce continuously; the run never stops |
+| End turn, +40 IP / +15 SP / +3 PC | The old *Requisition* button and its step rail stay; generators, labs and consulates produce continuously between clicks |
 | Requisition screens and department buttons | The REQUISITION click, cadence multiplier, machine purchases and policies |
 | Build cruisers in a queue over two cycles | Cruiser lines convert IP to hulls every second |
 | Fleet reliability decays with chaos | Continuous decay versus maintenance and standardisation; automatic overhaul policy |
@@ -110,13 +110,21 @@ The Reckoning hides every other card. There is one order: **Recalculate the Calc
 
 ## Interface
 
-The dashboard is a terminal: a 24-step rail, resource strip, current order, click zone, machine shop, fleet, research, bridge, doctrine, signal, pub, forecast, policies and dispatches. It steps at 1240, 1020, 860 and 560 pixels; the rail becomes a horizontal strip on tablet and phone; every card is a single-column block below 860px. No horizontal scrolling. Every animation is disabled under `prefers-reduced-motion`.
+The dashboard is the original Supreme Command terminal: a sidebar of departments (Headquarters, Research Directorate, Fleet & Production, Tactical Bridge, Deep Signal, Dispatches, The White Hart), the imperial top bar, the page heading with the campaign step and the requisition button, the twenty-four step rail, the animated Orion star map, the tactical plot, and the White Hart's own paper-and-lamplight realm.
+
+The idle layer was merged into that furniture rather than replacing it:
+
+- **The resource strip** carries eight live figures in two rows of four — industrial points, science, political capital, reliability, chaos, capital, unrest and the Forecast multiplier — each with its per-second rate. The White Hart keeps its own bar for pints, patrons, noise, Silence Energy, checks and staff.
+- **The mission card** under the strip is the current order, with the step rail and its tooltips doing the bookkeeping.
+- **Headquarters** keeps the star map and the intelligence card, and adds the click zone, the machine shop, the reforms and the fleet card.
+- **The White Hart** is the same room it always was — masthead, night clock, resource bar, room tabs, the patrons on the floor — with the Silencer, the shop tabs and the tour laid into it.
+- **Step 24** closes every other department. The sidebar greys out, the pub shuts, and the reckoning card is the only order on the terminal.
+
+It steps at 1240, 1020, 860 and 560 pixels; the rail becomes a horizontal strip on tablet and phone; every card is a single-column block below 860px. No horizontal scrolling. Every animation is disabled under `prefers-reduced-motion`.
 
 Keyboard: `Space` requisitions, `?` or `H` opens the briefing, `Esc` closes a dialog. Sound is off by default and is a small WebAudio blip when enabled.
 
 The introduction uses the five-page Asimov-inspired prologue from `src/lore.js`; it plays once, can be skipped, and can be re-read from the **?** briefing. Mood: the Calculus, the commander the model cannot hold, the three directives, the Quiet Array, and your orders.
-
----
 
 ## Verification
 
@@ -124,8 +132,8 @@ The test bench is optional and needs one dev package:
 
 ```sh
 npm install --no-save --package-lock=false jsdom
-node tools/idle.mjs      # engine: 176 checks, no browser required
-node tools/ui.mjs        # interface: 91 checks, jsdom
+node tools/idle.mjs      # engine: 181 checks, no browser required
+node tools/ui.mjs        # interface: 110 checks against the old shell, jsdom
 node tools/balance.mjs . 2   # step-by-step pacing for two phases
 ```
 

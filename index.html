@@ -4,10 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#070b12" />
-    <meta name="description" content="Absolute Superiority — The Long Forecast: a twenty-four step clicker and idle campaign about a falling frontier, machines that cannot escape their directives, and one question asked for ten thousand years." />
+    <meta name="theme-color" content="#080d16" />
+    <meta name="description" content="A dark, Asimov-inspired strategy game about a falling frontier, machines that cannot escape their own directives, and one question asked for ten thousand years." />
     <title>Absolute Superiority — The Long Forecast</title>
     <link rel="stylesheet" href="command.css" />
+    <link rel="stylesheet" href="pub-realm.css" />
     <script defer src="src/util.js"></script>
     <script defer src="src/content.js"></script>
     <script defer src="src/lore.js"></script>
@@ -15,88 +16,286 @@
     <script defer src="src/idle-ui.js"></script>
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="rail" aria-label="The twenty-four steps">
-        <a class="brand" href="index.html">
-          <span class="crest" aria-hidden="true">✦</span>
-          <span class="brand-copy">
-            <strong>ABSOLUTE SUPERIORITY</strong>
-            <small>THE BURDEN OF GENIUS · THE LONG FORECAST</small>
-          </span>
-        </a>
-        <div class="rail-phase">
-          <span class="eyebrow">PHASE</span>
-          <strong id="phase-label">I</strong>
-          <span class="rail-phase-note">THE CALCULUS</span>
+    <aside class="sidebar">
+      <a class="brand" href="index.html"
+        ><span class="crest">✦</span
+        ><span
+          >ABSOLUTE<br />SUPERIORITY<small>THE BURDEN OF GENIUS · THE LONG FORECAST</small></span
+        ></a
+      >
+      <div class="command-label">SUPREME COMMAND / 01</div>
+      <nav aria-label="Command departments">
+        <button data-view="headquarters" class="active">
+          <span>⌘</span> Headquarters <i>01</i></button
+        ><button data-view="research">
+          <span>⚛</span> Research Directorate <b>3</b></button
+        ><button data-view="production">
+          <span>▥</span> Fleet & Production</button
+        ><button data-view="bridge"><span>⌖</span> Tactical Bridge</button
+        ><button data-view="signal"><span>◉</span> Deep Signal <b id="signal-secret-count">0/2</b></button
+        ><button data-view="dispatches">
+          <span>▤</span> Dispatches <b>2</b>
+        </button>
+        <div class="nav-divider"></div>
+        <button data-view="white-hart"><span>♧</span> The White Hart</button>
+        <p class="annex-note">DIRECTORATE LOCAL & TEST ANNEX</p>
+      </nav>
+      <div class="sidebar-bottom">
+        <p>
+          SUPERIORITY IS A THEORY.<br /><strong>SURVIVAL IS AN ORDER.</strong>
+        </p>
+        <div class="connection"><span></span> SECURE UPLINK ESTABLISHED</div>
+      </div>
+    </aside>
+    <div class="workspace">
+      <div class="ambient" aria-hidden="true"></div>
+      <header class="topbar">
+        <div>
+          <span class="live-dot"></span> IMPERIAL DEFENCE NETWORK
+          <span class="slash">/</span> <span>COMMAND TERMINAL</span>
         </div>
-        <div class="rail-heading">
-          <span class="eyebrow">THE TWENTY-FOUR STEPS</span>
-          <span class="rail-rule" aria-hidden="true"></span>
+        <div class="commander">
+          <span class="avatar">SC</span
+          ><span>Supreme Commander<small>LEVEL OMEGA CLEARANCE</small></span
+          ><button id="help" type="button" aria-label="Campaign instructions" title="Campaign instructions">?</button><button id="restart-menu" type="button" aria-label="Restart the game, tutorial or introduction" title="Restart options">⟲</button><button id="fullscreen-toggle" type="button" aria-label="Enter fullscreen" title="Toggle fullscreen">⛶</button>
         </div>
-        <ol class="step-rail" id="step-rail" aria-label="Campaign steps"></ol>
-        <div class="rail-foot">
-          <div class="rail-forecast">
-            <span class="eyebrow">FORECAST</span>
-            <strong id="rail-forecast">0</strong>
-            <small>PERMANENT OUTPUT</small>
+      </header>
+      <main>
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">
+              THE ORION CAMPAIGN <span>/</span> THE LONG FORECAST
+            </p>
+            <h1 id="page-title">Headquarters</h1>
+            <p id="page-subtitle">
+              The Calculus gave this frontier twelve cycles. Something in the dark is still asking a question.
+            </p>
           </div>
-          <div class="rail-buttons">
-            <button type="button" class="btn ghost tiny" data-action="help">BRIEFING ?</button>
-            <button type="button" class="btn ghost tiny" data-action="restart">NEW FORECAST ⟲</button>
+          <div class="turn-control">
+            <div>
+              <span class="eyebrow">CAMPAIGN STEP</span
+              ><strong id="cycle">STEP 001 <small>/ 024</small></strong>
+            </div>
+            <button class="primary" id="requisition">
+              Requisition <span>+</span>
+            </button>
           </div>
-          <p class="rail-slogan">SUPERIORITY IS A THEORY.<br /><strong>SURVIVAL IS AN ORDER.</strong></p>
         </div>
+        <section class="step-track" id="step-track" aria-label="The twenty-four steps"></section>
+        <section
+          class="resources"
+          aria-label="Campaign resources"
+          id="resources"
+        ></section>
+        <section class="mission" id="mission" aria-label="Current order and the campaign loop"></section>
+        <div id="view"></div>
+    <section id="pub-realm" class="pub-realm" hidden aria-label="The White Hart">
+  <div class="paper-grain" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="masthead">
+      <div class="brand-block">
+        <button class="pub-crest" id="pub-crest" type="button" aria-label="The White Hart crest" title="The crest of the house"><span>W</span><i>H</i></button>
+        <div class="brand-copy">
+          <p class="eyebrow">THE RESEARCH DIRECTORATE’S LOCAL SINCE BEFORE THE WAR</p>
+          <h1>The White Hart</h1>
+          <p class="brand-subtitle">Fleet Street, Norden Deep <span class="brand-dot">·</span> London manners. Local gravity.</p>
+        </div>
+      </div>
+      <div class="night-block" aria-live="polite">
+        <div class="night-topline"><span class="live-dot"></span><span id="open-status">OPEN FOR THE EVENING</span><span class="night-season" id="season-label">AUTUMN</span></div>
+        <div class="night-title"><span id="night-label">WEDNESDAY</span><strong id="night-count">01</strong><span class="night-divider">/</span><span class="night-goal">10 WEDNESDAYS</span></div>
+        <div class="night-track"><span id="night-progress"></span></div>
+        <div class="night-foot"><span id="clock-label">7:00 PM</span><span id="streak-label">0 survived in a row</span><span id="weather-label" class="weather-label">CLEAR</span></div>
+      </div>
+      <div class="header-actions">
+        <div class="secret-counter" id="secret-counter" title="Easter eggs found on the premises">
+          <span class="secret-icon" aria-hidden="true">🥚</span><strong id="secret-count">0</strong><span class="secret-total" id="secret-total">/16</span>
+        </div>
+        <button class="icon-button" id="sound-button" type="button" aria-label="Turn sound on" title="Sound on / off"><span id="sound-icon">◖</span><span class="action-caption">SOUND</span></button>
+        <button class="icon-button" id="help-button" type="button" aria-label="How to play" title="How to play"><span>?</span><span class="action-caption">HELP</span></button>
+        <button class="icon-button restart-button" id="restart-button" type="button" aria-label="Start a new game" title="Start a new game"><span>↻</span><span class="action-caption">NEW</span></button>
+      </div>
+    </header>
+
+    <section class="resource-bar" aria-label="Pub resources">
+      <div class="resource-cell resource-pints"><span class="resource-icon" aria-hidden="true">🍺</span><div><span class="resource-name">PINTS</span><strong id="pub-pints">0</strong></div><span class="resource-rate" id="pub-rate-pints">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">🪑</span><div><span class="resource-name">PATRONS</span><strong id="pub-patrons">0</strong></div><span class="resource-rate" id="pub-rate-patrons">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">🔊</span><div><span class="resource-name">NOISE</span><strong id="pub-noise">0</strong></div><span class="resource-rate" id="pub-rate-noise">—</span></div>
+      <div class="resource-cell resource-se"><span class="resource-icon" aria-hidden="true">🔇</span><div><span class="resource-name">SILENCE ENERGY</span><strong id="pub-se">0</strong></div><span class="resource-rate" id="pub-rate-se">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">⚗️</span><div><span class="resource-name">CHECKS</span><strong id="pub-checks">0</strong></div><span class="resource-rate" id="pub-rate-checks">—</span></div>
+      <div class="resource-cell"><span class="resource-icon" aria-hidden="true">🎩</span><div><span class="resource-name">STAFF</span><strong id="pub-staff-count">0</strong></div><span class="resource-rate" id="pub-rate-tier">TIER I</span></div>
+    </section>
+
+    <section class="annex-location" aria-label="The White Hart in the campaign"><div class="annex-orbit" aria-hidden="true">✦</div><div><p class="eyebrow">ABSOLUTE SUPERIORITY / NORDEN DEEP</p><p>The Directorate builds the future next door, to three directives.<br><em>We check whether it keeps the second one.</em></p></div><button type="button" class="annex-jump" data-annex-jump>Prototype checks <span>0.000001% deviation*</span></button></section>
+    <section id="annex-running" class="annex-running" hidden data-annex-controls aria-label="Active prototype check"><div><span class="eyebrow">EXPERIMENT IN PROGRESS</span><strong id="annex-trial-name"></strong><p id="annex-pause-note"></p></div><div class="annex-sampling"><label for="annex-progress" id="annex-seconds">0 / 12 seconds</label><progress id="annex-progress" max="100" value="0"></progress><span id="annex-pint">0 / 1 control pint served</span></div><button id="annex-cancel" type="button">Cancel check</button></section>
+    <main class="game-layout">
+      <section class="pub-panel panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">WEDNESDAY SERVICE <span class="heading-rule"></span></p>
+            <h2>The pub is almost peaceful.</h2>
+          </div>
+          <div class="door-status"><span class="door-light"></span><span id="door-status">DOOR OPEN</span></div>
+        </div>
+        <div class="stage-frame" id="stage-frame">
+          <div class="stage-topline"><span>THE WHITE HART</span><span>FLEET STREET <i>✦</i> NORDEN DEEP</span></div>
+          <div class="stage-inner" id="stage-inner">
+            <div class="pub-floor" id="pub-floor"></div>
+            <div id="annex-stage-trial" class="annex-stage-trial" hidden aria-hidden="true"><span id="annex-stage-icon">⚗</span><div><small>DIRECTORATE BENCH TELEMETRY</small><strong id="annex-stage-label"></strong></div><i>● LIVE</i></div>
+            <div class="stage-dusk" id="stage-dusk" aria-hidden="true"></div>
+            <div class="stage-flash" id="stage-flash" aria-hidden="true"></div>
+          </div>
+          <div class="stage-bottomline"><span>THE ROOM WHERE EVERYBODY KNOWS YOUR BUSINESS</span><span id="scene-note">THE SILENCER IS LISTENING</span></div>
+        </div>
+        <div class="room-navigation">
+          <button class="nav-arrow" id="room-prev" type="button" aria-label="Previous rooms">‹</button>
+          <div class="room-page-list" id="room-tabs" aria-label="Room pages"></div>
+          <button class="nav-arrow" id="room-next" type="button" aria-label="Next rooms">›</button>
+          <span class="swipe-hint">SWIPE TO WANDER</span>
+        </div>
+        <div class="scene-caption"><span class="caption-seal">✦</span><span id="scene-caption">Three regulars have arrived. One of them has brought a notebook and an opinion.</span></div>
+      </section>
+
+      <aside class="management-column" aria-label="Pub management">
+        <section class="tour-card panel" id="pub-tour" aria-label="The evening’s orders">
+          <div class="tour-head"><p class="eyebrow" id="pub-tour-eyebrow">THE ANNEX ORDERS <span class="heading-rule"></span></p><strong id="pub-tour-count">0 / 5</strong></div>
+          <h2 id="pub-tour-title">How an annex is run.</h2>
+          <ol class="tour-steps" id="pub-tour-steps"></ol>
+          <p class="tour-loop" id="pub-tour-loop">THE LOOP: pour → absorb → vent → spend → grow. The Silencer turns a loud room into Silence Energy, and Silence Energy turns into everything else.</p>
+        </section>
+        <section class="meter-card panel" id="energy-card" aria-live="polite">
+          <div class="meter-head">
+            <div><p class="eyebrow">THE FENTON SILENCER</p><h2>Room noise</h2></div>
+            <div class="meter-percentage" id="energy-percent">18<span>%</span></div>
+          </div>
+          <div class="energy-numbers"><strong><span id="energy-readout">18</span><span class="slash"> / </span><span id="energy-capacity">100</span><small> dB</small></strong><span class="energy-flow" id="energy-flow">+0.0 / sec</span></div>
+          <div class="energy-track" role="progressbar" aria-label="Room noise" aria-valuemin="0" aria-valuemax="100" aria-valuenow="18"><span id="energy-fill"></span><span class="energy-marks" aria-hidden="true"><i style="left:70%"></i><i style="left:85%"></i><i style="left:95%"></i></span></div>
+          <p class="energy-status" id="energy-status"><span class="warning-icon">✦</span><span>Comfortably below catastrophe.</span></p>
+          <div class="meter-actions">
+            <button class="action-button" id="vent-button" type="button"><span aria-hidden="true">↧</span><span id="vent-button-label">VENT</span></button>
+            <button class="action-button ghost" id="upgrade-button" type="button"><span aria-hidden="true">⚙</span><span>UPGRADES</span></button>
+          </div>
+        </section>
+
+        <section class="silencer-card panel" id="silencer-card">
+          <div class="machine-glow" id="machine-glow" aria-hidden="true"></div>
+          <div class="silencer-head">
+            <p class="eyebrow">THE APPARATUS <span class="heading-rule"></span></p>
+            <h2 id="silencer-name">The Prototype</h2>
+            <p class="silencer-tier" id="silencer-tier">TIER I</p>
+          </div>
+          <div class="stat-row">
+            <div class="stat"><span class="stat-label">ABSORPTION</span><strong id="absorption-value">5.0 <small>dB / sec</small></strong></div>
+            <div class="stat"><span class="stat-label">VENT RATE</span><strong id="vent-rate-value">0.0 <small>SE / sec</small></strong></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat"><span class="stat-label">HOUSING</span><strong id="home-room">GENERAL BAR</strong></div>
+            <div class="stat"><span class="stat-label">ZONES</span><strong id="active-zones">1 ACTIVE</strong></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat"><span class="stat-label">CAPACITY</span><strong id="meter-tier-cap">100 SE</strong></div>
+            <div class="stat"><span class="stat-label">INCIDENTS</span><strong id="explosion-count">0</strong></div>
+          </div>
+        </section>
+
+        <section class="serve-card panel">
+          <p class="eyebrow">THE BAR <span class="heading-rule"></span></p>
+          <h2 id="serve-title">Pull a pint.</h2>
+          <p class="serve-detail" id="serve-detail">Service runs itself now. Pull a pint anyway: the landlord counts every hand-pulled pint, and so does the Calculus.</p>
+          <div class="serve-actions">
+            <button class="action-button primary" id="serve-button" type="button"><span aria-hidden="true">🍺</span><span id="serve-button-label">PULL A PINT</span></button>
+            <button class="action-button ghost" id="serve-cancel" type="button" hidden>CANCEL</button>
+          </div>
+        </section>
+
+        <section class="reputation-card panel">
+          <div class="reputation-head"><p class="eyebrow">THE NEIGHBOURHOOD</p><strong id="reputation-value">100</strong></div>
+          <div class="reputation-track"><span id="reputation-fill"></span></div>
+          <p class="standing-copy" id="standing-copy">Beloved, if occasionally loud.</p>
+        </section>
+
+        <section class="press-card panel">
+          <p class="eyebrow" id="press-tag">LATEST EDITION · WEDNESDAY</p>
+          <h3 id="press-headline">“Regulars insist the pub is perfectly normal.”</h3>
+          <p id="press-copy">The Fenton apparatus has been switched on. Nobody is quite sure by whom.</p>
+          <button class="text-button" id="journal-button" type="button">OPEN THE JOURNAL <span aria-hidden="true">→</span></button>
+        </section>
+
+        <nav class="dock" aria-label="Pub management shortcuts">
+          <button class="dock-button" id="shop-button" type="button"><span aria-hidden="true">🚪</span><span>ROOMS</span></button>
+          <button class="dock-button" id="staff-button" type="button"><span aria-hidden="true">🎩</span><span>STAFF</span></button>
+          <button class="dock-button" id="amenities-button" type="button"><span aria-hidden="true">🪑</span><span>AMENITIES</span></button>
+          <button class="dock-button" id="dock-vent-button" type="button"><span aria-hidden="true">↧</span><span id="dock-vent-copy">VENT</span></button>
+        </nav>
+        <p class="save-status" id="pub-save-status">SAVED LOCALLY</p>
       </aside>
+    </main>
+  </div>
 
-      <div class="workspace">
-        <div class="ambient" aria-hidden="true"></div>
-        <header class="topbar">
-          <div class="topbar-id">
-            <span class="live-dot" aria-hidden="true"></span>
-            IMPERIAL DEFENCE NETWORK <span class="slash">/</span> COMMAND TERMINAL
-          </div>
-          <div class="resource-strip" id="resources" aria-label="Resources"></div>
-          <div class="topbar-actions">
-            <span class="commander"><span class="avatar">SC</span><span>SUPREME COMMANDER<small>OMEGA CLEARANCE</small></span></span>
-            <button type="button" class="icon" data-action="sound" id="sound-btn" aria-label="Toggle sound" title="Sound on / off">◖</button>
-            <button type="button" class="icon" data-action="help" aria-label="Briefing" title="Briefing">?</button>
-            <button type="button" class="icon" data-action="restart" aria-label="Start a new forecast" title="New forecast">⟲</button>
-          </div>
-        </header>
+  <section id="pub-laboratory" class="pub-laboratory" data-annex-controls aria-labelledby="annex-title">
+    <div class="annex-lab-header"><div><p class="eyebrow">RESEARCH DIRECTORATE · FIELD STATION W.H. / 001</p><h2 id="annex-title">The experimental round.</h2><p>Oak panelling. Proper ale. A vacuum-tube computer where the fruit machine used to be.</p></div><div class="deviation-seal"><span>CLAIMED STATISTICAL DEVIATION</span><strong>0.000001%</strong><small>“Practically the universe itself.” — Norden</small></div></div>
+    <p class="annex-lore">Every scientist here works at the Directorate next door. They bring their theories; Fenton brings a bell jar; the landlord insists on a beer mat. A prototype check is really a test of the first directive — whether the machine can be used without destroying a crew — and the pub is the only place in Norden Deep where the answer is honest. All three projects can be checked during ordinary pub service.</p>
+    <div class="annex-lab-meta"><span id="annex-link-state"></span><button type="button" class="annex-nav" data-view="research">Return to the Research Directorate ↗</button></div>
+    <div id="annex-projects" class="annex-projects"></div>
+    <p id="annex-message" class="annex-message" role="status"></p>
+    <article id="annex-report" class="annex-report" hidden><span class="eyebrow">FIELD REPORT / WITNESSED BY THE LANDLORD</span><h3 id="annex-report-title"></h3><p id="annex-report-finding"></p><p class="annex-fatal-flaw" id="annex-report-flaw"></p><p id="annex-report-result"></p><button type="button" class="annex-nav" data-view="research">File reviewed. Back to the Directorate →</button></article>
+    <p class="annex-footnote">* Professor Norden’s stated deviation, not independent certification. A check requires 12 seconds of active service and one freshly served control pint. Charges apply only on completion. Each initial check counts toward the campaign’s two field tests; engineering safeguards are still mandatory. Certified projects remain available for a 5 IP repeat audit. Leaving cancels unfinished readings, at no charge.</p>
+  </section>
 
-        <div class="moment" id="moment" hidden></div>
+  <div class="toast" id="toast" hidden>
+    <div class="toast-body">
+      <p class="toast-title" id="toast-title">Notice</p>
+      <p class="toast-copy" id="toast-body">Something has happened.</p>
+    </div>
+    <button class="toast-close" id="toast-close" type="button" aria-label="Dismiss">×</button>
+  </div>
 
-        <main class="board" id="board">
-          <section class="card step-card wide" id="step-card" aria-label="Current step"></section>
-          <section class="card action-card" id="action-card" aria-label="Requisition"></section>
-          <section class="card build-card" id="build-card" aria-label="Machines and reforms"></section>
-          <section class="card fleet-card" id="fleet-card" aria-label="The fleet"></section>
-          <section class="card research-card" id="research-card" aria-label="Research and hearings"></section>
-          <section class="card bridge-card wide" id="bridge-card" aria-label="Tactical bridge"></section>
-          <section class="card doctrine-card" id="doctrine-card" aria-label="Doctrine"></section>
-          <section class="card signal-card" id="signal-card" aria-label="The Quiet Array"></section>
-          <section class="card pub-card wide" id="pub-card" aria-label="The White Hart"></section>
-          <section class="card forecast-card" id="forecast-card" aria-label="Forecast and prestige"></section>
-          <section class="card policies-card" id="policies-card" aria-label="Policies"></section>
-          <section class="card log-card wide" id="log-card" aria-label="Dispatches"></section>
-        </main>
+  <div class="achievement-pop" id="achievement-pop" hidden>
+    <span class="achievement-icon" id="achievement-icon">★</span>
+    <div><p class="achievement-kicker">ACHIEVEMENT</p><p class="achievement-name" id="achievement-name">One For The Road</p><p class="achievement-desc" id="achievement-desc">Serve your first pint.</p></div>
+  </div>
 
-        <footer class="footer">
-          <span><span class="live-dot" aria-hidden="true"></span> ALL OUTPUT IN STANDARD IMPERIAL CYCLES</span>
-          <span>COMMAND OS v.7.00 <span class="slash">/</span> <span id="save-status">LOCAL ARCHIVE ACTIVE</span></span>
+  <div class="modal-root" id="modal-root" hidden>
+    <div class="modal-backdrop" data-close-modal="1"></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="modal-close" type="button" aria-label="Close">×</button>
+      <div class="modal-content" id="modal-content"></div>
+    </div>
+  </div>
+
+  <div class="crisis-screen" id="crisis-screen" hidden>
+    <div class="crisis-inner">
+      <p class="crisis-kicker" id="crisis-kicker">EXTRA! EXTRA!</p>
+      <h2 class="crisis-title" id="crisis-title">FENTON SILENCER EXPLODES</h2>
+      <p class="crisis-copy" id="crisis-copy">“We told you so,” say physicists.</p>
+      <button class="crisis-button" id="crisis-button" type="button">CONTINUE →</button>
+    </div>
+  </div>
+
+  <div class="pub-intro" id="pub-intro" role="dialog" aria-label="The landlord’s briefing" hidden></div>
+
+  <div class="tooltip" id="tooltip" hidden></div>
+  <p class="visually-hidden" id="live-announcer" aria-live="polite"></p>
+    </section>
+        <footer>
+          <span
+            ><span class="live-dot"></span> ALL TIMES IN STANDARD IMPERIAL
+            CYCLES</span
+          ><span
+            >COMMAND OS v.6.04 <span class="slash">/</span>
+            <span id="save-status">LOCAL ARCHIVE ACTIVE</span></span
+          >
         </footer>
-      </div>
+      </main>
     </div>
-
-    <div class="float-layer" id="float-layer" aria-hidden="true"></div>
-    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
-
-    <div class="modal-root" id="modal-root" hidden>
-      <div class="modal-backdrop" data-action="close-modal"></div>
-      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <button class="modal-close" type="button" data-action="close-modal" aria-label="Close">×</button>
-        <div id="modal-content"></div>
-      </div>
-    </div>
+    <div id="prologue" class="prologue" role="dialog" aria-label="Campaign introduction" hidden></div>
+    <aside id="tour-coach" class="tour-coach" aria-label="Tutorial coach" hidden></aside>
+    <dialog id="briefing">
+      <div class="eyebrow">CLASSIFIED / COMMAND BRIEFING</div>
+      <h2 id="dialog-title"></h2>
+      <div id="dialog-copy"></div>
+      <button class="primary" id="close-dialog">Acknowledged →</button>
+    </dialog>
+    <div id="command-toast" role="status"></div>
   </body>
 </html>

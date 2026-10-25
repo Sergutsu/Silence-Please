@@ -359,6 +359,17 @@ localStorage.setItem(A.SAVE_KEY, JSON.stringify(cappedRaw));
 const cappedBack = A.load();
 assert(cappedBack && cappedBack.offlineReport.seconds <= A.OFFLINE_BASE_HOURS * 3600 + 1, 'a long absence is capped');
 
+/* ---------------------------------------------------------------- the bar */
+section('the pub keeps its click');
+const bar = fresh();
+assert(!A.act(bar, 'pour').ok, 'the bar is shut before step 22');
+bar.step = 22;
+bar.pub.rooms = { general: true, saloon: true };
+const pintsBefore = bar.pints;
+assert(A.act(bar, 'pour').ok && bar.pints > pintsBefore, 'pulling a pint by hand pays out');
+assert(bar.totals.pints > 0, 'the tally of hand-pulled pints is kept');
+assert(bar.pub.noise > 0, 'a hand-pulled pint adds a little noise');
+
 /* ------------------------------------------------------------- hidden words */
 section('the pub still answers to the old names');
 const whisper = fresh();
@@ -367,6 +378,8 @@ assert(pintWord.ok && whisper.pints >= 30, 'a hidden word pays out');
 assert(!A.act(whisper, 'egg', 'pint').ok, 'the same word is spent for the phase');
 assert(A.act(whisper, 'egg', '42').ok && whisper.sp >= 42, 'another word answers differently');
 assert(!A.act(whisper, 'egg', 'nonsense').ok, 'unknown words are ignored');
+const whisperArchive = A.sanitize(JSON.parse(A.serialize(whisper)));
+assert(whisperArchive && whisperArchive.seen['egg:pint'], 'a spent word stays spent across a reload');
 A.tick(whisper, 0.2);
 assert(whisper.achievements.includes('word-cellar'), 'a hidden word is an achievement');
 

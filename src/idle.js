@@ -473,7 +473,7 @@
       up: {},
       totals: {
         ip: 0, sp: 0, pc: 0, se: 0, clicks: 0, shipsBuilt: 0, kills: 0, sorties: 0,
-        sortieCount: 0, tests: 0, hearings: 0, volleys: 0, blocks: 0, analyzers: 0,
+        sortieCount: 0, tests: 0, hearings: 0, volleys: 0, blocks: 0, analyzers: 0, pints: 0,
         checks: 0, disrupts: 0, raids: 0, explosions: 0,
       },
       fleet: {
@@ -924,6 +924,18 @@
     s.pub.tier = next.tier;
     say(s, `The Fenton Silencer is now ${next.name}. ${next.note}`, 'good');
     return { ok: true, msg: `Silencer tier ${next.tier}: ${next.name}.` };
+  }
+
+  function pourPint(s) {
+    if (s.step < 22) return { ok: false, msg: 'The White Hart is not open yet.' };
+    const d = derive(s);
+    const gain = Math.max(1, d.pintsPerSec * 2.5 + s.pub.tier);
+    s.pints += gain;
+    s.totals.pints = num(s.totals.pints, 0) + gain;
+    s.pub.noise = clamp(s.pub.noise + 0.5, 0, 100);
+    s.pub.reputation = clamp(s.pub.reputation + 0.05, 0, 100);
+    say(s, `A pint is pulled by hand. The landlord approves of the method, if not of the pace. +${fmt(gain)} pints.`, 'info');
+    return { ok: true, msg: `+${fmt(gain)} pints.`, gain };
   }
 
   function ventPub(s, manual) {
@@ -1882,6 +1894,7 @@
       case 'pub-amenity': return buyPubItem(s, PUB_AMENITIES, id);
       case 'pub-upgrade': return buyPubUpgrade(s, id);
       case 'pub-tier': return buyPubTier(s);
+      case 'pour': return pourPint(s);
       case 'pub-vent': return ventPub(s, true);
       case 'pub-check': return checkPub(s);
       case 'prestige-upgrade': return buyPrestigeUpgrade(s, id);
@@ -1961,6 +1974,9 @@
     merged.click = { ...base.click, ...(raw.click || {}) };
     merged.event = { ...base.event, ...(raw.event || {}) };
     merged.hearings = Array.isArray(raw.hearings) ? raw.hearings.slice(0, 20) : [];
+    merged.seen = raw.seen && typeof raw.seen === 'object'
+      ? Object.fromEntries(Object.entries(raw.seen).filter(([key]) => key.length <= 40).slice(0, 80))
+      : {};
     merged.achievements = Array.isArray(raw.achievements) ? raw.achievements.slice(0, 40) : [];
     merged.log = Array.isArray(raw.log) ? raw.log.slice(0, 80) : [];
     merged.news = [];
@@ -2039,7 +2055,7 @@
     VERSION, SAVE_KEY, STEP_COUNT, STEP_DEFS, GENS, LABS, CONS, PROJECTS, UPGRADES,
     PRESTIGE_UPGRADES, PUB_STAFF, PUB_AMENITIES, PUB_UPGRADES, PUB_TIERS, WEATHERS,
     MOMENTS, ACHIEVEMENTS, EGGS, OFFLINE_BASE_HOURS, LEGACY_KEYS,
-    newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown, ending, gameSpeed,
+    newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown, ending, gameSpeed, pourPint,
     prestigeUpgradeCost: (s, def) => def.cost[Math.min(num(s.forecastUp[def.id], 0), def.cost.length - 1)],
     forecastMult, globalMult, upgradeCost, upgradeLevel, bulkCost, maxAffordable,
     upgradeBy, pubRoomCost, pubItemEffect, seUpgradeLevel, pubEffect,
