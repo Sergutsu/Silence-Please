@@ -1,11 +1,10 @@
-name: Publish the White Hart
+name: Publish the Long Forecast
 
 on:
   push:
     branches:
       - main
-      - arena/18deebe0-silence-please
-      - arena/4f0ba709-silence-please
+      - arena/251d70a0-silence-please
   workflow_dispatch:
 
 permissions:
@@ -24,7 +23,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the pub
+      - name: Check out the forecast
         uses: actions/checkout@v4
       - name: Prepare GitHub Pages
         uses: actions/configure-pages@v5
@@ -32,6 +31,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-      - name: Publish the White Hart
+      - name: Publish the Long Forecast
         id: deployment
         uses: actions/deploy-pages@v4

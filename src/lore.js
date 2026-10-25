@@ -50,7 +50,7 @@
       title: "Twelve thousand years of order",
       body: [
         "The Empire has stood so long that its fall became a branch of mathematics. The Forecast Office runs the Calculus on ten thousand worlds and returns a number: how long the lights stay on.",
-        "For the Orion Marches the answer has always been comfortable. Until this cycle.",
+        "For the Orion Marches the answer has always been comfortable. Until this forecast.",
       ],
       sign: VOICES.calculus,
     },
@@ -59,7 +59,7 @@
       title: "A commander with no file",
       body: [
         "Beyond the Kepler corridor an enemy fleet moves in a pattern the Calculus cannot hold. Their commander appears in no census, no tax roll, no casualty list. Where the model expects him, the model is silent.",
-        "You have been given the Marches, eight cruisers, and twelve campaign cycles. Hold the corridor, or the frontier behind it stops being ours.",
+        "You have been given the Marches, eight cruisers, and twenty-four standing orders. Hold the corridor while the numbers do the fighting, or the frontier behind it stops being ours.",
       ],
       sign: VOICES.admiral,
     },
@@ -85,8 +85,9 @@
       kicker: "YOUR ORDERS",
       title: "The loop, in one breath",
       body: [
-        "ASSESS the board. BUILD cruisers. RESEARCH a prototype, test it twice, then certify it. ENGAGE once per cycle at the Tactical Bridge. LISTEN to the array. ADVANCE the cycle and take what it costs.",
-        "Destroy the enemy before cycle 24. Lose if capital integrity, fleet reliability or political capital reaches zero — or if the admirals' unrest reaches a hundred.",
+        "REQUISITION until your hands hurt. Then buy the machines that press the key for you. Extraction, theory, authority, the yards: every department is a number that grows while you are elsewhere.",
+        "Authorise the three prototypes and let the tests run. The fleet sorties itself. The field holds itself. The pub serves itself, until the noise wakes the Silencer. Watch the rail: twenty-four steps, one after another, and each one an order the Calculus has already written.",
+        "At step twenty-four there is no war and no machine. Only the reckoning, and the Forecast it leaves in your hands for the next phase.",
       ],
       sign: VOICES.admiral,
     },
@@ -97,7 +98,7 @@
     {
       name: "The Calculus of decline",
       from: "a mathematics that predicts the fall of empires",
-      here: "Twelve campaign cycles is a forecast, not a rule. The enemy reinforcement schedule is the model being wrong on a timetable.",
+      here: "Twenty-four steps are a forecast, not a rule. The enemy reinforcement schedule is the model being wrong on a timetable, and the armada at step twenty-three is the timetable arriving.",
     },
     {
       name: "A commander the model cannot hold",
@@ -138,12 +139,12 @@
 
   /* ---------------------------------------------------------------- glossary */
   const GLOSSARY = [
-    ["IP", "Industrial Points. Ships, safeguards, standardization. +40 every cycle."],
+    ["IP", "Industrial Points. Pressed by hand at first, then mined by machines. Ships, safeguards, standardization."],
     ["SP", "Scientific Points. Research, field tests, listening passes. +15 with the Directorate staffed."],
-    ["PC", "Political Capital. Authority to overrule scientists and admirals. Zero ends the campaign."],
+    ["PC", "Political Capital. Authority to overrule scientists and admirals. At zero the office works at a third of its output until emergency powers are found."],
     ["RELIABILITY", "Whether your fleet works as drawn. Below 50% engagements go badly."],
-    ["CHAOS", "Specification drift. At 40% or more it eats reliability every cycle."],
-    ["UNREST", "The admirals' patience. Endorsing excuses raises it. At 100% you are relieved of duty."],
+    ["CHAOS", "Specification drift. At 40% or more it eats output every second, and the fleet cannot be trusted."],
+    ["UNREST", "The admirals' patience. Endorsing excuses raises it. At 100% they mutiny: half output until revisions are funded."],
   ];
 
   window.ASLore = {

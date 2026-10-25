@@ -1,165 +1,153 @@
-# Absolute Superiority — The Burden of Genius · The Long Forecast
+# Absolute Superiority — The Long Forecast
 
-An offline retro-futurist strategy game with **The White Hart** as its officers’ recreation annex. The campaign now opens with a five-page **introduction**, teaches itself through an eleven-step **tutorial coach**, and keeps a **mission panel** on every screen that names the next order — so the loop is legible before it is playable. The whole background is drawn from the themes of **Isaac Asimov’s stories**: an empire whose fall has become arithmetic, machines that cannot escape their own directives, one question asked for ten thousand years, and a night that comes once every 2,049 years. It is an original homage, not an adaptation — no passage is copied, and the full debt is itemised in the Dispatches dossier. Built with plain JavaScript, CSS, and vendored PixiJS: no runtime dependencies, bundler, or network requests.
+A twenty-four step **clicker and idle** campaign about a falling frontier, three directives that machines cannot escape, and one question that has been asked for ten thousand years.
 
-## Every screen moves differently
+The old turn-based strategy campaign is gone. Every mechanic it had — industry, science, politics, shipyards, reliability, chaos, prototypes, field tests, hearings, safeguards, sorties, formations, targeting, wonder weapons, the exponential field, the enemy analyzer, capital defence, unrest, doctrine, the Quiet Array, the White Hart annex and total victory — has been rebuilt as a click, a generator, a timer, a policy or a purchase. The run is exactly **twenty-four steps**: it opens on step 01 and ends on step 24, which is **prestige and nothing else**, opening the next phase with permanent Forecast.
 
-Nothing here is one effect pasted across the interface — each department has its own movement, matched to what it is:
-
-| Where | What it does |
-| --- | --- |
-| The glass itself | A CRT refresh line falls down the terminal every 9.5s over a fine raster |
-| Sidebar | A rail of light walks the conduit; departments grow a marker bar as you reach for them; the uplink lamp blinks on a step |
-| Top bar | A trace runs the length of the rule; the end-turn arrow nudges |
-| The five readouts | Five behaviours: IP wipes a rule under the figure, SP breathes, PC steps like a status lamp, reliability sways like a needle (and shivers when degraded), chaos flickers |
-| Headquarters | A radar cone turns behind the contacts; the intelligence readout keeps a typing caret |
-| Research | Cards unfold from their spine, the glyph turns when you consider it, a scan line drops vertically |
-| Shipyard | A build laser crosses the hull; the queue bar runs as a conveyor |
-| Bridge | The engagement tag blinks while the fight is live; ready weapons carry a lamp |
-| Dispatches | Records file in from the left; the newest keeps a live cursor; the dossier uncovers downward |
-| Mission panel | The loop lights itself **in order** — ASSESS → BUILD → RESEARCH → ENGAGE → LISTEN → ADVANCE — so the sequence is visible; the order button charges and releases |
-| Hearings | The card's edge pulses red and the stamp knocks, because a ruling is overdue |
-| Signal | Fragments decode left to right, one after another |
-
-On top of that, **every resource number flashes once when its value actually changes**, and the mission panel pulses when the next order changes — so a cycle's cost is visible without reading the report. All of it is switched off under `prefers-reduced-motion`, and `tools/motion.mjs` fails the build if a signature animation is reused somewhere else or if any animation escapes the reduced-motion block.
-
-## The interface at any width
-
-Both screens step at one set of widths, and nothing is allowed to invent its own:
-
-| Screen | Stops |
-| --- | --- |
-| Supreme Command | 1450 · 1150 · 950 · 650 · 380 |
-| The White Hart (and its laboratory annex) | 1120 · 860 · 540 · 380 |
-
-What that buys you as the window narrows: the five readouts go 5 → 3 across before they get cramped, the mission panel stacks under its own order at 1150px and its six loop buttons go 3-up then 2-up, the dossier and research cards re-fit instead of pushing the page sideways, the sidebar becomes a top rail at 650px, and buttons in the mission order go full width on a phone. The embedded pub measures its own available width—not the outer browser window—because the command sidebar still occupies part of that window.
-
-Four guarantees are enforced rather than hoped for, and `tools/layout.mjs` fails the build if any of them breaks:
-
-- **Breakpoints measure the screen they lay out.** The scoped White Hart sheet compiles width rules to container queries, so its 860px layout activates when the pub itself has 860px even if the outer window is wider.
-- **No track wider than its box.** Every `auto-fit` grid uses `minmax(min(Npx, 100%), 1fr)`, so a narrow dialog can never be forced into horizontal scrolling.
-- **A tall card keeps its own top.** The prologue, the landlord's briefing and the crisis screen centre with flex plus `margin: auto` instead of `place-items: center`, which clips whatever sticks out above a short viewport.
-- **Nothing is painted over.** The tutorial coach measures itself and publishes `body.coach-open` and `--coach-h`, so the workspace keeps room for it at the bottom and the toast moves up under the top bar instead of vanishing behind the card; the coach stands down entirely during an engagement. On a short desktop, the sidebar slogan yields and the rail scrolls instead of shrinking its footer through the White Hart button.
-
-## First ten minutes
-
-1. **The introduction** opens on load: five short pages — the Calculus, the commander the model cannot hold, the Directorate and its three directives, the Quiet Array, and your orders. Every page can be skipped; it can be replayed from the `?` briefing or Dispatches.
-2. **The tutorial coach** takes over in the corner of the screen and walks the whole loop in eleven steps: read the map, understand the currencies, queue cruisers, authorize a prototype, test it twice, certify it, fly one sortie, rule on the failure report it files, end the cycle, listen to the array, and walk over to the pub. Steps complete themselves the moment you do the thing; each one can be skipped, and the coach stands down while an engagement is live.
-3. **The mission panel** stays after the tutorial. It shows the current order with the reason for it, a button that jumps to the right department, the six-phase loop strip (ASSESS · BUILD · RESEARCH · ENGAGE · LISTEN · ADVANCE) with each phase marked done / open / blocked, and three meters: enemy vessels remaining, cycles left, and unrest.
-4. **The cycle report** lands after every *End turn* and lists exactly what the cycle paid and cost — +40 IP, +15 SP, +3 PC, capital integrity, reliability, chaos, enemy strength — then repeats the next order.
-
-5. **Restart, at any time.** The `⟲` button in the top bar opens three separate switches, each with what it does spelled out: **replay the introduction** (the five pages, from the top), **restart the tutorial** (the coach returns to step 1 and clears its marks; the campaign carries on exactly as it is), and **start a new campaign** (wipes the archive, begins again at cycle 012 — introduction included — after a confirmation). The same three are reachable from the `?` briefing and from Dispatches.
-
-Old archives are not dragged through any of it: a campaign that predates the briefing is marked as already briefed, and both can be replayed on demand.
-
-## Enter Supreme Command
-
-Serve this folder with `python3 -m http.server 8000 --bind 0.0.0.0`, then open `index.html`. The campaign also works directly from the static files (browser storage availability may vary for file URLs).
-
-- **Headquarters:** select systems on the animated strategic map and review intelligence, resources, and correspondence. The Quiet Array appears as a pulsing unknown contact.
-- **The Long Question (Deep Signal):** spend IP / SP across three listening passes to decode a transmission that turns out to be a question, asked by a machine that has outlived its makers. Answer it to open a first-contact ending, or hold the silence for a fleet-strength advantage. Three campaign-cycle gags and two archive Easter eggs reward close attention; one can be found by typing `lighthouse` outside the pub.
-- **Research Directorate:** authorize prototypes, interrupt production, conduct two field tests, and fund engineering safeguards. Unsafe weapons have real consequences. Hire theorists for faster research at the cost of reliability, or dismiss Norden for standardization.
-- **Fleet & Production:** commission cruisers, restore reliability, reduce chaos, or cede a base with a poisoned prototype.
-- **Tactical Bridge:** one sortie per campaign cycle. Deploy, pause with the button or Space, then issue formation and targeting orders. Line ahead balances fire and protection; escort screens protect vulnerable support ships; breakthrough trades safety for firepower. Command-vessel targeting disrupts enemy fire. Torpedoes fire automatically; wonder weapons are activated manually. Leaving the bridge or hiding the browser tab pauses combat. Strategic changes require fleet recovery.
-- **The three directives:** every Directorate machine is built to them — it may not allow a crew to be destroyed, it must obey its specification, it must preserve its own calibration. They are why uncertified weapons file failure reports, why safeguards matter, and why the exponential field goes into hysteresis when it is switched off.
-- **Scientific hearings:** failures create persistent reports. Pay 30 IP / 12 PC to demand revisions (grounds the prototype until certified, adds one retooling cycle, reduces unrest), or endorse the excuse (+25 military unrest and +8 chaos). Unresolved reports block turn advancement and deployment; 100 unrest triggers a mutiny.
-- **Enemy adaptation:** the analyzer boosts firepower while its support vessel survives. Enemies learn to prioritize it across engagements. The exponential field protects only the flagship; an unsafe field causes a six-second command blackout on deactivation, including recovery after victory or withdrawal.
-- **The White Hart (Research Directorate’s local):** the pub sits beside the Directorate on the headquarters map. Authorize a project, then open the pub’s *experimental round*. Keep the pub running for 12 seconds and serve one control pint; the report is filed to the campaign at Norden’s claimed 0.000001% statistical deviation. The first checks count as field tests (20 IP / 15 SP); certified projects can be re-audited for 5 IP. Engineering safeguards remain mandatory. The pub’s own ledger and gameplay are unchanged.
-- **End turn:** receive resources and advance production, while the enemy damages capital integrity. Defeat the enemy before cycle 24. Capital, reliability, or political capital reaching zero ends the campaign.
-- **Endings:** win through standardization after dismissing Norden, deploy a certified weapon for scientific synergy, settle for an expensive peace, or answer the array and reach **A greeting in the dark**. Campaign starts mid-war at cycle 12.
-- **Background:** Vesper Reach is the enemy’s six-sun homeworld, where night falls once every 2,049 years; Vega runs the Encyclopaedia Project shipyards; the enemy commander appears in no census the Calculus can read. The dossier at the end of Dispatches lists every inspiration and where it shows up in play.
-- **The White Hart:** the pub is a department of the same page — pick it from the sidebar or walk over from the map/Research cards. The pub only runs while you are standing in it. Its ledger (save) and mechanics are retained; `white-hart.html` now just redirects into the command page.
-
-Campaign progress is archived in localStorage separately from the pub. Earlier v1 campaign archives migrate automatically; restored engagements always pause. Malformed saves fall back to a new campaign. Reset from Dispatches. This is a playable vertical slice: fleet-level tactical simulation, not individual-ship movement orders or a full grand-strategy territory simulation.
-
-Key game files: `src/lore.js` (the background bible: prologue, three directives, dossier, glossary), `command.css` (command interface, dark theme, introduction/coach/mission styling), `src/campaign.js` (campaign state, story, briefing, and rendering), `src/campaign-combat.js` (deterministic combat rules), `src/directorate.js` + `src/pub-annex.js` (shared pub/Directorate contract), and `tools/*.mjs` (integration and rules tests). The pub's markup lives inside `index.html`; its stylesheets (`style.css`, `pub-annex.css`) are compiled into `pub-realm.css` by `node tools/scope-pub-css.mjs` so they only apply inside the pub realm. Pub game code is unchanged apart from pausing while off-screen.
-
-### Verification
+**Play:** serve the folder, then open `index.html`.
 
 ```sh
-npm install --no-save --package-lock=false jsdom
-node tools/combat.mjs
-node tools/campaign.mjs
-node tools/campaign-edge.mjs
-node tools/story.mjs
-node tools/tutorial.mjs
-node tools/motion.mjs
-node tools/layout.mjs
-node tools/smoke.mjs
-node tools/pub-tutorial.mjs
-node tools/apicheck.mjs
-node tools/inspect.mjs
+python3 -m http.server 8000 --bind 0.0.0.0
 ```
+
+No install, bundler, runtime dependency or network request. Progress saves locally every few seconds and while the tab is away, up to eight hours (more with *Sleeping Forecast*).
 
 ---
 
-# Silence, Please — The White Hart
+## The twenty-four steps
 
-A PixiJS pub-management game about the quietest pub on Fleet Street, the loudest machine in London, and the landlord who refuses to choose between them.
+The rail on the left always shows where you are. A step completes the moment its order is met; nothing has to be claimed or clicked through.
 
-**Play now:** [sergutsu.github.io/Silence-Please](https://sergutsu.github.io/Silence-Please/)
+| # | Step | The mechanic it introduces | The order |
+| --- | --- | --- | --- |
+| 01 | Requisition | The click. Industrial points by hand, with a cadence multiplier. | 20 requisitions |
+| 02 | Extraction | Idle production. Extractors and foundries bank IP every second. | 4 extractors, 6 IP/sec |
+| 03 | Theory | Scientific points. Study by hand, then let labs produce. | 60 SP |
+| 04 | Authority | Political capital. Consulates produce it; lobbying buys it. | 15 PC |
+| 05 | The Yards | Cruiser lines convert IP into Standard Cruisers automatically. | 8 cruisers |
+| 06 | Reliability | Fleet upkeep. Maintenance bays and standardised hulls oppose decay. | 85% reliability with 8 cruisers |
+| 07 | Chaos | Specification drift. Industry creates it; reforms and automation remove it. | chaos ≤ 15% |
+| 08 | Prototypes | Three Directorate specifications, each drafted on a timer. | authorise all three |
+| 09 | Field Tests | Automatic tests on timers, paid in science. | 6 successful tests |
+| 10 | Hearings | Failure reports become decisions: revisions or endorsements. | 3 hearings resolved |
+| 11 | Safeguards | Certification. Removes failure risk and grants a permanent bonus. | all three certified |
+| 12 | Engagements | Auto-sorties every six seconds. Exchange arithmetic, not orders. | destroy 10 hulls |
+| 13 | Formations | Line ahead, escort screen, breakthrough — with real trade-offs. | win 5 sorties |
+| 14 | Targeting | Screen, support or command fire; command fire disrupts the enemy. | 5 command vessels disrupted |
+| 15 | Wonder Weapons | A charged volley, fired by hand or by policy. | 4 volleys |
+| 16 | The Exponential Field | Blocks raids, builds hysteresis, blacks out at 100%. | 4 raids blocked |
+| 17 | The Analyzer | Enemy adaptation over time and an analyzer that must be killed. | 2 analyzers destroyed |
+| 18 | Capital Defence | Raids, automatic repairs and the one-use ceded outpost. | capital ≥ 85% after 12 sorties |
+| 19 | Unrest | The admirals' patience; mutiny halves output until revisions are funded. | unrest ≤ 15% |
+| 20 | Doctrine | Norden (+science, −reliability) or Voss (+output, +reliability). | mastery 3/5 |
+| 21 | The Quiet Array | Three listening passes, then reply or hold the silence. | answer the array |
+| 22 | The White Hart | The pub as an idle department: rooms, patrons, pints, noise, SE, staff, checks. | 5 rooms · 3 checks · 150 SE |
+| 23 | The Armada | Total mobilisation — everything doubled — and the last enemy fleet. | destroy the armada |
+| 24 | The Reckoning | **Prestige only.** No machines, no research, no war. | recalculate the Calculus |
 
-## Open the pub
+---
 
-There is no install, bundler, or build step. Open `index.html` directly, or serve the folder with any static web server. PixiJS 8.6.6 is vendored in `vendor/`, so the game runs fully offline and fetches nothing.
+## Every mechanic, converted
 
-## Wednesday service
+Nothing from the old campaign was dropped; each system became a clicker or idle form.
 
-- **Tap a patron** in a room, **pull the pint** at the Beer Tap, then **tap that same patron again** to serve. A tankard appears over their head the moment the beer is ready.
-- **Tap a room** to switch its Silencer Zone on or off. Silenced rooms read 0 dB and their absorbed noise fills the Silence Energy meter.
-- At 70%, 85% and 95% capacity the warnings get progressively less polite. At 100%, the machine explodes: everything freezes for two seconds, then the housing is destroyed and rebuilt. Three explosions and the pub closes.
-- **Spend Silence Energy** on filters, microphones, a vent, reinforced casing, or the one-use Emergency Dump. Open the Vent while a safe vent rate is showing.
-- **The Landlord's Desk** sells rooms, Silencer research, staff and amenities. Swipe or use the arrows below the pub to page through rooms.
-- **Pause** with the header button or the space bar. **Long-press a patron** for patience, noise and trade. Progress saves in this browser.
-- **First Wednesday:** a returning player is spared it, but a new ledger opens with the **landlord’s briefing** — three pages on service, on Mr Fenton’s positronic apparatus and its three directives, and on the evening’s orders. The **evening’s orders** card then sits at the top of the management column and ticks off the loop as you perform it: tap a patron, pull the pint, serve them, switch a zone on, vent, and open the Landlord’s Desk. It stays as a permanent reminder of the loop — serve → silence → vent → spend → grow — and can be run again from the card. The header's **NEW** button opens the restart sheet, which offers all three separately: wipe the ledger and start a new Wednesday (the briefing plays again, as it did the first time), replay the briefing alone, or run the evening's orders again with the ledger untouched.
+| Was (turn-based) | Is (clicker / idle) |
+| --- | --- |
+| End turn, +40 IP / +15 SP / +3 PC | Generators, labs and consulates produce continuously; the run never stops |
+| Requisition screens and department buttons | The REQUISITION click, cadence multiplier, machine purchases and policies |
+| Build cruisers in a queue over two cycles | Cruiser lines convert IP to hulls every second |
+| Fleet reliability decays with chaos | Continuous decay versus maintenance and standardisation; automatic overhaul policy |
+| Bureaucratic chaos | Drift produced by industry, removed by reforms, priced as an output penalty |
+| Authorise, test twice, certify | Timed drafting → timed tests (with failures) → hearings → certification bonus |
+| Scientific hearings with a decision | Reports auto-resolve to your standing policy, or you rule by hand |
+| One sortie per cycle, pause and orders | A sortie every six seconds, fully automatic, with formations and targeting policies |
+| Torpedoes automatic, wonder weapons manual | Auto-fire policy, or the volley button when charged |
+| Exponential field protection and hysteresis | A toggle with heat, blocked raids and six-second command blackouts |
+| Enemy analyzer and adaptation | Spawning analyzer (kill it with support fire) and adaptation that rises over time |
+| Capital integrity, repairs, cede a base | Raids damage the capital; repairs are automatic; cede outpost four once for eight kills |
+| Military unrest and mutiny | Unrest rises with losses and endorsements; mutiny halves output until revision funding |
+| Norden vs standardization | Two doctrines with mastery levels and a switching cost |
+| Three listening passes, reply or silence | Passive listening passes, a manual listen shortcut, and a permanent branch reward |
+| Pub: patrons, pints, zones, noise, SE, tiers, upgrades, staff, rooms, weather, checks, easter eggs | An idle annex with the same nouns, automatic service, a noise meter, venting, tier upgrades, repeatable prototype checks and typed hidden words |
+| Win by cycle 24, with five possible endings | Step 23 wins the corridor; step 24 names the ending the phase earned (a greeting in the dark, the long silence, a working theory, reliability outweighs genius, an expensive peace) and opens the next phase |
 
-Win by reaching Silencer Tier 5 with all nine rooms open, ten Wednesdays survived, and the pantry stocked. Lose at zero reputation, three explosions, or a full minute above 95 dB.
+The scripted defeats of the old game (capital zero, mutiny, zero political capital) have become **setbacks**, not resets: capital zero cuts output until emergency powers are found, mutiny halves it until revisions are funded, and the run always remains playable.
 
-## What is in the pub
+---
 
-- **9 rooms**, each hand-drawn in code with its own wallpaper, floor, furniture and lighting — plus a secret room that only opens if you can guess where it is.
-- **14 kinds of patron**, from newspaper men to a ghost that pays in damp shillings, each with their own silhouette, walk-in, blink, patience bar and opinions.
-- **28 achievements**, **9 diary pages**, **16 random events**, **6 weather systems**, **11 amenities**, **9 staff**, **7 machine upgrades** and **6 machine tiers**.
-- **18 gag moments** — hats flying off, a piano starting itself, a queue forming under the silenced sign, a football landing in someone's pint.
-- **Props** that wander across the ceiling: a cat, a mouse, a pigeon, a ghost, a flying teapot, a UFO, a cab and a hat. Tap them.
-- **Easter eggs.** Type words into the pub. There are at least fourteen, and one of them is the only way to learn the truth about Mr Fenton. There is also an old cheat code that the landlord used to use.
+## How the idle loop works
 
-## More than quiet
+- **Click** REQUISITION (or press `Space`) to bank IP. Repeated clicks build a cadence multiplier up to ×3.
+- **Buy machines** with `×1`, `×10` or `MAX`. Industry, science and authority each have their own tree; cruiser lines live on the fleet card.
+- **Permanent reforms** are one-time purchases that survive until prestige.
+- **Autopilot** buys sensible things every half second: machines, cruiser lines, reforms, repairs, revisions, pub rooms, staff, amenities and Silencer upgrades. Turn it off in *Policies* and every purchase is yours.
+- **Offline:** when you come back, the machines are simulated at 60% efficiency (up to 90% with *Sleeping Forecast*), capped at eight hours plus four hours per level. A report tells you exactly what the quiet produced. Sleeping tabs are settled when you return, too.
+- **Moments:** every couple of minutes a small opportunity appears — a convoy, a favourable forecast, a raid, a choir, an inspector — with one button and a real consequence for ignoring it.
 
-The pub runs on a live decibel model: each room generates noise from its patrons and stops noise from its neighbours, silenced rooms absorb it, and the machine fills up. Weather, seasons, and the paper's latest headline all push the numbers around. The clock on the wall keeps the pub's time, which is not the world's time.
+### Research and directives
 
-## Controls
+Three prototypes survive from the old Directorate: the **Sphere of Annihilation**, the **Battle Analyzer** and the **Exponential Field**. Each is authorised for IP and SP, drafted for twenty seconds, then tested twice for 15 SP per test. Tests fail 40% of the time under unsafe specifications, filing a hearing; passing both tests also files a *specification-omission* hearing, because the tests have proved what the specification left out. Hearings cost either 30 IP and 5 PC (revisions, calm) or nothing (endorsement, +20 IP and +9 unrest). Certification costs 600 IP and 10 PC, requires a clean record, and grants the prototype's permanent bonus.
 
-| Action | Mouse / touch | Keyboard |
-| --- | --- | --- |
-| Select a patron | tap them in their room | `Tab` / `⇧Tab` |
-| Pull a pint, then serve | Beer Tap button | `Enter` or `B` |
-| Toggle a room's zone | tap the room card | `Z` (the selected patron's room) |
-| Page through rooms | swipe, or the arrows below the pub | `←` `→` |
-| Vent | Vent button | `V` |
-| Pause | header button | `space` |
-| Journal / Help | header buttons | `J` / `?` |
-| Close a panel | the ✕ | `Esc` |
+### War
 
-The pub also listens to what you type: letters typed at the keyboard are matched against a list of words, and the shortcuts above only fire when what you typed cannot be the start of one of them.
+Sorties resolve every six seconds: firepower against enemy power, with losses on both sides. Formations trade offence for protection; targeting picks screen, support (the only way to kill an analyzer) or command (halves raid damage and disrupts coordination). The exponential field blocks raids but builds heat; at 100% it blacks out the command link for six seconds. Capital damage, unrest and repairs all feed back into output.
 
-## Layout of the repository
+### The White Hart
+
+At step 22 the pub returns as an idle department rather than a second game. Pints accrue from patrons; noise accrues from patrons and the weather; absorption converts noise into **Silence Energy**; venting converts the rest. SE buys filters, microphones, absorbers, venting, a resonator, reinforced casing and an emergency dump. Pints buy rooms, staff, amenities and Silencer tiers. The pub's dividend — +3% output per SE upgrade, +4% per staff member, +3% per amenity, +3% per tier — feeds the whole terminal, and its prototype checks convert IP and SP into SE, science and reputation. Neglect it and the Silencer explodes: 40% of stored SE and some reputation. The pub also still answers to a few old words — type `pint`, `cheese`, `purvis`, `42` or `moom` while the terminal has focus, once per phase each, for a small gift and a line of dialogue.
+
+### Step 24: prestige only
+
+The Reckoning hides every other card. There is one order: **Recalculate the Calculus**. Gain Forecast from phase, income, kills, certifications, checks, rooms, doctrine and the array; phase II begins at step 01 with everything else reset, and every phase runs 10% faster than the last. Forecast held gives +1% output each; it can also be spent on permanent remembrance, which is worth far more per point but can only be bought once:
+
+- **Deep Memory** — +30% all output per level (5 levels).
+- **Remembered Hands** — +100% requisition power per level (5).
+- **Remembered Clock** — +6% speed for the whole forecast per level (5), on top of +10% per phase.
+- **Sleeping Forecast** — +25% offline efficiency and +4h cap per level (3).
+- **Inherited Yard** — begin each phase with extractors, a theory pool and 250 IP per level (3).
+
+---
+
+## Interface
+
+The dashboard is a terminal: a 24-step rail, resource strip, current order, click zone, machine shop, fleet, research, bridge, doctrine, signal, pub, forecast, policies and dispatches. It steps at 1240, 1020, 860 and 560 pixels; the rail becomes a horizontal strip on tablet and phone; every card is a single-column block below 860px. No horizontal scrolling. Every animation is disabled under `prefers-reduced-motion`.
+
+Keyboard: `Space` requisitions, `?` or `H` opens the briefing, `Esc` closes a dialog. Sound is off by default and is a small WebAudio blip when enabled.
+
+The introduction uses the five-page Asimov-inspired prologue from `src/lore.js`; it plays once, can be skipped, and can be re-read from the **?** briefing. Mood: the Calculus, the commander the model cannot hold, the three directives, the Quiet Array, and your orders.
+
+---
+
+## Verification
+
+The test bench is optional and needs one dev package:
+
+```sh
+npm install --no-save --package-lock=false jsdom
+node tools/idle.mjs      # engine: 176 checks, no browser required
+node tools/ui.mjs        # interface: 91 checks, jsdom
+node tools/balance.mjs . 2   # step-by-step pacing for two phases
+```
+
+`idle.mjs` covers the shape of the 24-step ladder, clicking, buying, all three economies, research/hearings/certification, combat/field/analyzer, unrest/doctrine/array/ceding, the pub and its hidden words, a complete run from step 01 to 24, a second run played by hand with the Autopilot off, the endings, prestige and remembrance, save/load, offline catch-up with a cap, malformed archives, and every order handlable without a crash.
+
+`ui.mjs` boots the real page in jsdom and checks the introduction, the rail, clicking, DOM purchases, later departments appearing at their steps, the annex, that **step 24 shows only the reckoning**, prestige, reloading an archive, the offline report, the briefing/restart dialogs, keyboard input, a long quiet session and the absence of console errors.
+
+---
+
+## Files
 
 ```
-index.html      markup and the fixed UI shell
-style.css       the whole look of the chrome, plus the shaking and crises
-vendor/         PixiJS 8.6.6 (MIT) and its licence
-src/util.js     maths, easing, formatting, reduced-motion detection
-src/content.js  every table: rooms, patrons, gags, events, achievements, eggs
-src/audio.js    WebAudio sound effects, no samples
-src/fx.js       particle system, props, weather, flash and shake
-src/scene.js    the Pixi stage: backdrop, room interiors, patrons, the machine
-src/game.js     state, economy, the noise model, saving
-src/ui.js       DOM rendering, modals, toasts, tooltips
-src/main.js     boot, ticker, input, keyboard and touch
-tools/          optional headless test bench (see tools/README.md)
+index.html       the terminal shell
+command.css      the whole look: rail, cards, meters, toasts, dialogs, responsive stops
+src/util.js      small shared helpers
+src/content.js   the pub's tables: rooms, patrons, tiers, upgrades, staff, amenities, weather
+src/lore.js      the background bible: prologue, three directives, inspirations, glossary
+src/idle.js      the engine: 24 steps, all mechanics, prestige, archive and offline simulation
+src/idle-ui.js   rendering, input, dialogs, sound and the frame loop
+tools/           optional headless test bench
 ```
 
-Every file in `src/` is plain browser JavaScript: no modules, no bundler, no transpiler.
+All game files are plain browser JavaScript. No modules, no bundler, no transpiler, no external requests.
 
-The project vendors the PixiJS 8.6.6 browser distribution under the MIT License at `vendor/PIXIJSLICENSE.txt`.
+The game is an original homage to the themes of Isaac Asimov's stories — the mathematics of falling empires, machines bound by directives, a question asked for ten thousand years, and the night that comes once every 2,049 years. No passage is copied. The debt is itemised in `src/lore.js` and in the Dispatches dossier inside the briefing.
