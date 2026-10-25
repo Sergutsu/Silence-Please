@@ -69,7 +69,7 @@ Nothing from the old campaign was dropped; each system became a clicker or idle 
 | Norden vs standardization | Two doctrines with mastery levels and a switching cost |
 | Three listening passes, reply or silence | Passive listening passes, a manual listen shortcut, and a permanent branch reward |
 | Pub: patrons, pints, zones, noise, SE, tiers, upgrades, staff, rooms, weather, checks, easter eggs | An idle annex with the same nouns, automatic service, a noise meter, venting, tier upgrades, repeatable prototype checks and typed hidden words |
-| Win by cycle 24 | Finish step 24 and prestige into the next phase |
+| Win by cycle 24, with five possible endings | Step 23 wins the corridor; step 24 names the ending the phase earned (a greeting in the dark, the long silence, a working theory, reliability outweighs genius, an expensive peace) and opens the next phase |
 
 The scripted defeats of the old game (capital zero, mutiny, zero political capital) have become **setbacks**, not resets: capital zero cuts output until emergency powers are found, mutiny halves it until revisions are funded, and the run always remains playable.
 
@@ -123,12 +123,12 @@ The test bench is optional and needs one dev package:
 
 ```sh
 npm install --no-save --package-lock=false jsdom
-node tools/idle.mjs      # engine: 170 checks, no browser required
-node tools/ui.mjs        # interface: 90 checks, jsdom
+node tools/idle.mjs      # engine: 176 checks, no browser required
+node tools/ui.mjs        # interface: 91 checks, jsdom
 node tools/balance.mjs . 2   # step-by-step pacing for two phases
 ```
 
-`idle.mjs` covers the shape of the 24-step ladder, clicking, buying, all three economies, research/hearings/certification, combat/field/analyzer, unrest/doctrine/array/ceding, the pub and its hidden words, a complete run from step 01 to 24, prestige and remembrance, save/load, offline catch-up with a cap, malformed archives, and every order handlable without a crash.
+`idle.mjs` covers the shape of the 24-step ladder, clicking, buying, all three economies, research/hearings/certification, combat/field/analyzer, unrest/doctrine/array/ceding, the pub and its hidden words, a complete run from step 01 to 24, a second run played by hand with the Autopilot off, the endings, prestige and remembrance, save/load, offline catch-up with a cap, malformed archives, and every order handlable without a crash.
 
 `ui.mjs` boots the real page in jsdom and checks the introduction, the rail, clicking, DOM purchases, later departments appearing at their steps, the annex, that **step 24 shows only the reckoning**, prestige, reloading an archive, the offline report, the briefing/restart dialogs, keyboard input, a long quiet session and the absence of console errors.
 

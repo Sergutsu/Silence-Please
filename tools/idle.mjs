@@ -223,6 +223,62 @@ assert(Boolean(run.signal.choice), 'the array is answered in a full run');
 assert(Object.keys(run.pub.rooms).length >= 5, 'the pub opens at least five rooms in a full run');
 console.log(`  · full run: ${(elapsed / 60).toFixed(1)} minutes, ${A.fmt(run.totals.ip)} IP, ${run.totals.kills} kills, ${A.fmt(A.prestigeGain(run))} forecast`);
 
+/* --------------------------------------------------------- played by hand */
+section('the campaign can be played without the autopilot');
+const hand = fresh();
+hand.seen.intro = true;
+Object.keys(hand.policies).forEach((key) => {
+  if (typeof hand.policies[key] === 'boolean') hand.policies[key] = false;
+});
+let handElapsed = 0;
+let handBuy = 0;
+let handGuard = 0;
+while (hand.step < 24 && handElapsed < 90 * 60 && handGuard < 200000) {
+  handGuard += 1;
+  if (handElapsed >= 0) A.act(hand, 'click');
+  A.tick(hand, 0.2);
+  handElapsed += 0.2;
+  if (handElapsed < handBuy) continue;
+  handBuy = handElapsed + 1.5;
+  A.act(hand, 'study');
+  A.act(hand, 'lobby');
+  const options = [...A.GENS, ...A.LABS, ...A.CONS]
+    .filter((def) => hand.step >= def.step)
+    .map((def) => ({ def, cost: Math.ceil(def.cost * Math.pow(def.growth, (hand.gens[def.id] ?? hand.labs[def.id] ?? hand.cons[def.id]) || 0)) }))
+    .sort((a, b) => a.cost - b.cost);
+  options.slice(0, 2).forEach((option) => A.act(hand, 'buy', option.def.id));
+  A.act(hand, 'line');
+  A.UPGRADES.filter((def) => hand.step >= def.step).forEach((def) => A.act(hand, 'upgrade', def.id));
+  hand.research.forEach((project) => {
+    if (project.state === 0 && hand.step >= 8) A.act(hand, 'research', project.id);
+    if (project.state === 1 && hand.step >= 9) A.act(hand, 'test', project.id);
+    if (project.state === 2 && hand.step >= 11) A.act(hand, 'certify', project.id);
+  });
+  if (hand.hearings.length) A.act(hand, 'hearing', { index: 0, choice: 'revise' });
+  if (hand.step >= 13) A.act(hand, 'formation', hand.fleet.capital < 60 ? 'escort' : 'line');
+  if (hand.step >= 14) A.act(hand, 'target', hand.fleet.analyzer > 0 ? 'support' : 'command');
+  if (hand.step >= 15) A.act(hand, 'volley');
+  if (hand.step >= 16) A.act(hand, 'field');
+  if (hand.step >= 12) A.act(hand, 'repair');
+  if (hand.fleet.crisis) A.act(hand, 'emergency');
+  if (hand.step >= 20 && !hand.fleet.doctrine) A.act(hand, 'doctrine', 'voss');
+  if (hand.step >= 21) {
+    A.act(hand, 'listen');
+    if (hand.signal.fragments >= 3 && !hand.signal.choice) A.act(hand, 'answer', 'reply');
+  }
+  if (hand.step >= 22) {
+    ['saloon', 'snug', 'kitchen', 'cellar', 'backroom'].forEach((room) => A.act(hand, 'pub-room', room));
+    A.act(hand, 'pub-check');
+    A.act(hand, 'pub-vent');
+    A.PUB_STAFF.forEach((staff) => A.act(hand, 'pub-staff', staff.id));
+    A.PUB_UPGRADES.forEach((item) => A.act(hand, 'pub-upgrade', item.id));
+    A.act(hand, 'pub-tier');
+  }
+}
+assert(hand.step === 24, `a hand-played run reaches the reckoning (reached ${hand.step} after ${(handElapsed / 60).toFixed(1)} minutes)`);
+assert(handElapsed < 90 * 60, 'a hand-played run does not stall');
+console.log(`  · hand-played run: ${(handElapsed / 60).toFixed(1)} minutes without the autopilot`);
+
 /* --------------------------------------------------------------- prestige */
 section('prestige and the next phase');
 const gain = A.prestigeGain(run);
@@ -243,8 +299,17 @@ assert(next.prestiges === 1, 'the prestige count rises');
 assert(next.totals.ip === 0 && next.fleet.ships === 0 && next.research.every((rec) => rec.state === 0), 'machines, fleet and research reset');
 assert(JSON.stringify(next.forecastUp) === before.up, 'permanent remembrance survives');
 assert(A.prestigeGain(fresh()) > 0, 'a fresh run still has a prestige value');
-Math.random = originalRandom;
-
+assert(A.ending(run).title, 'the reckoning names an ending');
+const replyEnd = fresh();
+replyEnd.signal.choice = 'reply';
+assert(A.ending(replyEnd).title === 'A greeting in the dark', 'answering the array opens its ending');
+const silenceEnd = fresh();
+silenceEnd.signal.choice = 'silence';
+assert(/silence/i.test(A.ending(silenceEnd).title), 'holding the silence opens another');
+const certifiedEnd = fresh();
+certifiedEnd.research.forEach((rec) => { rec.state = 3; });
+certifiedEnd.fleet.doctrine = 'voss';
+assert(A.ending(certifiedEnd).title === 'Reliability outweighs genius', 'a certified Voss fleet earns its own ending');
 /* ---------------------------------------------------------------- archive */
 section('the local archive');
 const save = fresh();

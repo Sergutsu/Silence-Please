@@ -164,6 +164,7 @@ assert(document.body.classList.contains('reckoning'), 'the terminal enters recko
 assert(!document.querySelector('#forecast-card').hidden, 'the forecast card stays');
 assert(document.querySelector('#forecast-card [data-action="prestige"]'), 'prestige is the available order');
 assert(/Recalculate/.test(env.text('#forecast-card')), 'the reckoning is named');
+assert(/ENDING/.test(env.text('#forecast-card')), 'the reckoning names the ending this phase earned');
 const gain = A.prestigeGain(s);
 assert(gain >= 1, 'the reckoning is worth forecast');
 env.click('#forecast-card [data-action="prestige"]');

@@ -149,7 +149,12 @@
     const def = info.def;
     const next = A.stepDef(Math.min(24, s.step + 1));
     const done = info.done;
-    const goalLine = `${fmt(info.goal.value)}${info.goal.target ? ` / ${fmt(info.goal.target)}` : ''}`;
+    const lowerIsBetter = s.step === 7 || s.step === 19;
+    const goalLine = !info.goal.target
+      ? `${fmt(info.goal.value)} remaining`
+      : lowerIsBetter
+        ? `${fmt(info.goal.value)} / max ${fmt(info.goal.target)}`
+        : `${fmt(info.goal.value)} / ${fmt(info.goal.target)}`;
     const html = `
       <div class="step-top">
         <div class="step-kicker">
@@ -587,6 +592,10 @@
           <div><span>FORECAST GAINED</span><strong>+${gain}</strong></div>
           <div><span>STEPS 1–24</span><strong>COMPLETE</strong></div>
           <div><span>NEXT PHASE</span><strong>${roman(s.phase + 1)}</strong></div>
+        </div>
+        <div class="ending-block">
+          <span class="eyebrow">✦ ENDING · ${esc(A.ending(s).title.toUpperCase())}</span>
+          <p>${esc(A.ending(s).copy)}</p>
         </div>
         <ul class="gain-list">${A.prestigeBreakdown(s).map((row) => `<li><span>${esc(row.label)}</span><strong>+${row.value}</strong></li>`).join('')}</ul>
         ${btn('prestige', '', 'RECALCULATE THE CALCULUS ✦', { cls: 'primary big', focus: 'prestige' })}

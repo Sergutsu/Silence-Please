@@ -966,6 +966,38 @@
   }
 
   /* ------------------------------------------------------------ prestige */
+  function ending(s) {
+    const certified = s.research.every((rec) => rec.state === 3);
+    if (s.signal.choice === 'reply') {
+      return {
+        title: 'A greeting in the dark',
+        copy: 'The array stops asking and starts answering: one word, repeating, in a language the machines translate as relief. The Calculus has no column for it, so a new one is drawn.',
+      };
+    }
+    if (s.signal.choice === 'silence') {
+      return {
+        title: 'The long silence',
+        copy: 'The enemy retreats from a capital they can no longer locate. The array keeps its channel open and keeps asking, patiently, at something with nobody left to answer it.',
+      };
+    }
+    if (certified && s.fleet.doctrine === 'voss') {
+      return {
+        title: 'Reliability outweighs genius',
+        copy: 'Every prototype came home certified. Every machine that returned had obeyed its directives, and not one of them was brilliant enough to be excused.',
+      };
+    }
+    if (certified) {
+      return {
+        title: 'A working theory',
+        copy: 'The corridor is held by machines that were tested twice and signed for once. The Directorate calls this a compromise. The crews call it a fleet.',
+      };
+    }
+    return {
+      title: 'An expensive peace',
+      copy: 'The frontier is quiet because there is nothing left in it to argue about. The Calculus files the result under victory and does not itemise the cost.',
+    };
+  }
+
   function prestigeBreakdown(s) {
     const certified = s.research.filter((r) => r.state === 3).length;
     const rooms = Object.keys(s.pub.rooms).length;
@@ -2002,7 +2034,7 @@
     VERSION, SAVE_KEY, STEP_COUNT, STEP_DEFS, GENS, LABS, CONS, PROJECTS, UPGRADES,
     PRESTIGE_UPGRADES, PUB_STAFF, PUB_AMENITIES, PUB_UPGRADES, PUB_TIERS, WEATHERS,
     MOMENTS, ACHIEVEMENTS, EGGS, OFFLINE_BASE_HOURS, LEGACY_KEYS,
-    newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown,
+    newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown, ending,
     prestigeUpgradeCost: (s, def) => def.cost[Math.min(num(s.forecastUp[def.id], 0), def.cost.length - 1)],
     forecastMult, globalMult, upgradeCost, upgradeLevel, bulkCost, maxAffordable,
     upgradeBy, pubRoomCost, pubItemEffect, seUpgradeLevel, pubEffect,

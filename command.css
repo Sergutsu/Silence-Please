@@ -838,6 +838,38 @@ body.modal-open { overflow: hidden; }
 .report-row.good strong { color: var(--green); }
 .report-row.bad strong { color: var(--red); }
 
+/* ------------------------------------------------------------- the ending */
+.ending-block {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-left: 2px solid var(--violet);
+  background: linear-gradient(90deg, rgba(185, 160, 255, 0.09), rgba(0, 0, 0, 0.12));
+}
+.ending-block p { margin-top: 6px; font-size: 12px; color: var(--ink-dim); max-width: 78ch; }
+
+/* ---------------------------------------------------------- forecast ledger */
+.gain-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px 18px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.18);
+}
+.gain-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+.gain-list strong { color: var(--green); font-weight: 600; }
+
 /* -------------------------------------------------------------- responsive */
 @media (max-width: 1240px) {
   .board { grid-template-columns: minmax(0, 1fr); }
@@ -937,25 +969,3 @@ body.modal-open { overflow: hidden; }
   }
   .ambient::after { display: none; }
 }
-
-/* ---------------------------------------------------------- forecast ledger */
-.gain-list {
-  list-style: none;
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 6px 18px;
-  border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.18);
-}
-.gain-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--dim);
-  text-transform: uppercase;
-}
-.gain-list strong { color: var(--good, #8fd9a8); font-weight: 600; }
