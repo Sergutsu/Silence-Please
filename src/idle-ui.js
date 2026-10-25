@@ -150,7 +150,9 @@
     const next = A.stepDef(Math.min(24, s.step + 1));
     const done = info.done;
     const lowerIsBetter = s.step === 7 || s.step === 19;
-    const goalLine = !info.goal.target
+    const goalLine = s.step === 24
+      ? 'READY'
+      : !info.goal.target
       ? `${fmt(info.goal.value)} remaining`
       : lowerIsBetter
         ? `${fmt(info.goal.value)} / max ${fmt(info.goal.target)}`
@@ -201,7 +203,7 @@
             <small>${last > 2.5 ? 'THE CLERK IS IMPRESSED' : last > 1.5 ? 'KEEP THE RHYTHM' : 'CLICK TO BUILD CADENCE'}</small>
           </div>
           <div class="click-facts">
-            <div><span>TOTAL IMPRESSIONS</span><strong>${fmtInt(s.totals.clicks)}</strong></div>
+            <div><span>TOTAL REQUISITIONS</span><strong>${fmtInt(s.totals.clicks)}</strong></div>
             <div><span>AUTOMATIC</span><strong>${fmtRate(d.autoClicks)}/s</strong></div>
           </div>
           ${showStudy || showLobby ? `<div class="manual-actions">
