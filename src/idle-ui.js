@@ -573,10 +573,11 @@
     const html = `
       ${cardHead('THE LONG FORECAST', 'Forecast', 'Everything the Calculus has learned about you, kept where the next phase can find it.')}
       <div class="forecast-top">
-        <div class="forecast-reserve"><span class="eyebrow">FORECAST RESERVE</span><strong>${fmt(s.forecast)}</strong><span>×${A.forecastMult(s).toFixed(2)} all output · +5% per Forecast held</span></div>
+        <div class="forecast-reserve"><span class="eyebrow">FORECAST RESERVE</span><strong>${fmt(s.forecast)}</strong><span>×${A.forecastMult(s).toFixed(2)} all output · +1% per Forecast held</span></div>
         <div class="forecast-meta">
           <div><span>PHASE</span><strong>${roman(s.phase)}</strong></div>
           <div><span>PRESTIGES</span><strong>${s.prestiges}</strong></div>
+          <div><span>SPEED</span><strong>×${A.gameSpeed(s).toFixed(2)}</strong></div>
           <div><span>PAST</span><strong>${fmt(s.forecastLifetime)} FORECAST</strong></div>
         </div>
       </div>

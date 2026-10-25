@@ -98,12 +98,13 @@ At step 22 the pub returns as an idle department rather than a second game. Pint
 
 ### Step 24: prestige only
 
-The Reckoning hides every other card. There is one order: **Recalculate the Calculus**. Gain Forecast from phase, income, kills, certifications, checks, rooms, doctrine and the array; phase II begins at step 01 with everything else reset. Forecast held gives +5% output each; it can also be spent on permanent remembrance:
+The Reckoning hides every other card. There is one order: **Recalculate the Calculus**. Gain Forecast from phase, income, kills, certifications, checks, rooms, doctrine and the array; phase II begins at step 01 with everything else reset, and every phase runs 10% faster than the last. Forecast held gives +1% output each; it can also be spent on permanent remembrance, which is worth far more per point but can only be bought once:
 
-- **Deep Memory** — +25% all output per level (3 levels).
-- **Remembered Hands** — +100% requisition power per level (3).
+- **Deep Memory** — +30% all output per level (5 levels).
+- **Remembered Hands** — +100% requisition power per level (5).
+- **Remembered Clock** — +6% speed for the whole forecast per level (5), on top of +10% per phase.
 - **Sleeping Forecast** — +25% offline efficiency and +4h cap per level (3).
-- **Inherited Yard** — begin each phase with extractors, a theory pool and 250 IP per level (2).
+- **Inherited Yard** — begin each phase with extractors, a theory pool and 250 IP per level (3).
 
 ---
 

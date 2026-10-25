@@ -123,10 +123,11 @@
   ];
 
   const PRESTIGE_UPGRADES = [
-    { id: 'memory', name: 'Deep Memory', note: '+25% all output, permanently', cost: [3, 6, 12], max: 3 },
-    { id: 'hands', name: 'Remembered Hands', note: '+100% requisition power, permanently', cost: [2, 5, 10], max: 3 },
+    { id: 'memory', name: 'Deep Memory', note: '+30% all output, permanently', cost: [3, 6, 12, 24, 40], max: 5 },
+    { id: 'hands', name: 'Remembered Hands', note: '+100% requisition power, permanently', cost: [2, 5, 10, 20, 35], max: 5 },
     { id: 'offline', name: 'Sleeping Forecast', note: '+25% offline efficiency and +4h cap', cost: [2, 4, 8], max: 3 },
-    { id: 'headstart', name: 'Inherited Yard', note: 'Begin each phase with 3 extractors, a theory pool and 250 IP', cost: [4, 10], max: 2 },
+    { id: 'clock', name: 'Remembered Clock', note: '+6% to the speed of the whole forecast', cost: [5, 10, 18, 30, 45], max: 5 },
+    { id: 'headstart', name: 'Inherited Yard', note: 'Begin each phase with 3 extractors, a theory pool and 250 IP', cost: [4, 10, 20], max: 3 },
   ];
 
   const PUB_STAFF = [
@@ -434,7 +435,7 @@
       n: 24, key: 'prestige', kicker: 'THE RECKONING', title: 'Recalculate The Calculus',
       copy: 'The corridor is won. The Calculus recalculates, and finds the same frontier, the same files, and a commander who remembers more than the model does. Take what you have learned and begin the next phase.',
       unlock: 'PRESTIGE is the only order here. Recalculate to begin the next phase with permanent Forecast.',
-      tip: 'Forecast held gives +5% output each. Spend it on permanent upgrades, or keep it in reserve.',
+      tip: 'Forecast held gives +1% output each; remembrance bought with it gives far more, but cannot be spent twice. Hold or invest — that is the step.',
       goal: () => ({ label: 'the reckoning', value: 1, target: 1, extra: 'recalculate the Calculus to open the next phase' }),
     },
   ];
@@ -572,7 +573,7 @@
   }
 
   function globalMult(s) {
-    const forecast = 1 + 0.05 * num(s.forecast) + 0.25 * num(s.forecastUp.memory, 0);
+    const forecast = 1 + 0.01 * num(s.forecast) + 0.3 * num(s.forecastUp.memory, 0);
     const phase = 1 + 0.12 * (num(s.phase, 1) - 1);
     const drift = 1 - Math.min(0.4, num(s.fleet.chaos) / 250);
     const crisis = s.fleet.crisis ? 0.35 : 1;
@@ -1026,8 +1027,12 @@
     return Math.max(1, base + fromIp + fromKills + fromSe + bonus);
   }
 
+  function gameSpeed(s) {
+    return 1 + 0.1 * (num(s.phase, 1) - 1) + 0.06 * num(s.forecastUp.clock, 0);
+  }
+
   function forecastMult(s) {
-    return 1 + 0.05 * num(s.forecast) + 0.25 * num(s.forecastUp.memory, 0);
+    return 1 + 0.01 * num(s.forecast) + 0.3 * num(s.forecastUp.memory, 0);
   }
 
   function buyPrestigeUpgrade(s, id) {
@@ -1773,7 +1778,7 @@
   function tick(s, delta, options = {}) {
     let dt = num(delta);
     if (!(dt > 0)) return;
-    dt = clamp(dt, 0, options.offline ? 5 : 0.5);
+    dt = clamp(dt, 0, options.offline ? 5 : 0.5) * gameSpeed(s);
     const offline = Boolean(options.offline);
     s.runSeconds += dt;
     if (!offline) s.playSeconds += dt;
@@ -2034,7 +2039,7 @@
     VERSION, SAVE_KEY, STEP_COUNT, STEP_DEFS, GENS, LABS, CONS, PROJECTS, UPGRADES,
     PRESTIGE_UPGRADES, PUB_STAFF, PUB_AMENITIES, PUB_UPGRADES, PUB_TIERS, WEATHERS,
     MOMENTS, ACHIEVEMENTS, EGGS, OFFLINE_BASE_HOURS, LEGACY_KEYS,
-    newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown, ending,
+    newGame, tick, act, derive, stepInfo, stepDef, checkStep, enterStep, prestigeGain, prestigeBreakdown, ending, gameSpeed,
     prestigeUpgradeCost: (s, def) => def.cost[Math.min(num(s.forecastUp[def.id], 0), def.cost.length - 1)],
     forecastMult, globalMult, upgradeCost, upgradeLevel, bulkCost, maxAffordable,
     upgradeBy, pubRoomCost, pubItemEffect, seUpgradeLevel, pubEffect,
