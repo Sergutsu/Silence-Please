@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
-const FILES = ['src/util.js', 'src/content.js', 'src/lore.js', 'src/idle.js', 'src/idle-ui.js'];
+const FILES = ['src/util.js', 'src/content.js', 'src/lore.js', 'src/live.js', 'src/idle.js', 'src/idle-ui.js'];
 
 export async function bootGame(rootDir, { seed = null, quiet = true } = {}) {
   const errors = [];

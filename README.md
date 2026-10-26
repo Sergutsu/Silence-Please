@@ -120,6 +120,19 @@ The idle layer was merged into that furniture rather than replacing it:
 - **The White Hart** is the same room it always was — masthead, night clock, resource bar, room tabs, the patrons on the floor — with the Silencer, the shop tabs and the tour laid into it.
 - **Step 24** closes every other department. The sidebar greys out, the pub shuts, and the reckoning card is the only order on the terminal.
 
+### How the numbers move without redrawing the terminal
+
+A clicker changes its figures several times a second. Rebuilding the markup on every tick is what makes that kind of interface feel broken: hover states drop, CSS animations restart, focus is lost mid-click, the page jumps, and every click has to land on a node that is about to be discarded.
+
+So the interface and the engine run on two clocks:
+
+- **The engine ticks on every animation frame** — income, sorties, prototypes and the pub all advance at the full rate.
+- **The interface repaints on its own clock**, twelve times a second by default, and backs off to six if a repaint is expensive. That is faster than anyone can read and far cheaper than sixty.
+
+Repaints no longer assign `innerHTML`. `src/live.js` reconciles the new markup against the live tree: it walks the two in parallel and writes only what actually differs — one text node for a banked figure, one `style` attribute for a meter, one `disabled` for an affordance. Elements keep their identity, so nothing the player can see is thrown away. In steady state the counters are stark: over four hundred frames of a running battle the reconciler replaced **zero** elements and removed **zero** nodes, while writing a hundred-odd text values. A frame whose markup is unchanged is skipped outright.
+
+Two smaller things came out of the same work. The paint path no longer runs a dozen document-wide selector queries per frame — the shell's furniture (step counter, page heading, sidebar badges, the strip, the pub's readouts) is looked up once and held. And every live figure is set in `tabular-nums`, so a bank ticking from 999 to 1000 does not nudge the panel beside it.
+
 It steps at 1240, 1020, 860 and 560 pixels; the rail becomes a horizontal strip on tablet and phone; every card is a single-column block below 860px. No horizontal scrolling. Every animation is disabled under `prefers-reduced-motion`.
 
 Keyboard: `Space` requisitions, `?` or `H` opens the briefing, `Esc` closes a dialog. Sound is off by default and is a small WebAudio blip when enabled.
@@ -133,13 +146,13 @@ The test bench is optional and needs one dev package:
 ```sh
 npm install --no-save --package-lock=false jsdom
 node tools/idle.mjs      # engine: 181 checks, no browser required
-node tools/ui.mjs        # interface: 110 checks against the old shell, jsdom
+node tools/ui.mjs        # interface: 140 checks against the old shell, jsdom
 node tools/balance.mjs . 2   # step-by-step pacing for two phases
 ```
 
 `idle.mjs` covers the shape of the 24-step ladder, clicking, buying, all three economies, research/hearings/certification, combat/field/analyzer, unrest/doctrine/array/ceding, the pub and its hidden words, a complete run from step 01 to 24, a second run played by hand with the Autopilot off, the endings, prestige and remembrance, save/load, offline catch-up with a cap, malformed archives, and every order handlable without a crash.
 
-`ui.mjs` boots the real page in jsdom and checks the introduction, the rail, clicking, DOM purchases, later departments appearing at their steps, the annex, that **step 24 shows only the reckoning**, prestige, reloading an archive, the offline report, the briefing/restart dialogs, keyboard input, a long quiet session and the absence of console errors.
+`ui.mjs` boots the real page in jsdom and checks the introduction, the rail, clicking, DOM purchases, later departments appearing at their steps, the annex, that **step 24 shows only the reckoning**, prestige, reloading an archive, the offline report, the briefing/restart dialogs, keyboard input, a long quiet session and the absence of console errors. It also holds the live-rendering contract: after a second of frames the resource cell, the number, the panels, the star map and its 118 stars are the *same elements*, nothing was removed, a focused button kept its focus and its click, and the repaint count stayed far below the frame count.
 
 ---
 
@@ -151,6 +164,7 @@ command.css      the whole look: rail, cards, meters, toasts, dialogs, responsiv
 src/util.js      small shared helpers
 src/content.js   the pub's tables: rooms, patrons, tiers, upgrades, staff, amenities, weather
 src/lore.js      the background bible: prologue, three directives, inspirations, glossary
+src/live.js      the live DOM layer: reconciles markup in place so nothing flashes
 src/idle.js      the engine: 24 steps, all mechanics, prestige, archive and offline simulation
 src/idle-ui.js   rendering, input, dialogs, sound and the frame loop
 tools/           optional headless test bench

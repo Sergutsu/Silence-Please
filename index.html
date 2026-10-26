@@ -12,6 +12,7 @@
     <script defer src="src/util.js"></script>
     <script defer src="src/content.js"></script>
     <script defer src="src/lore.js"></script>
+    <script defer src="src/live.js"></script>
     <script defer src="src/idle.js"></script>
     <script defer src="src/idle-ui.js"></script>
   </head>
@@ -73,7 +74,11 @@
           </div>
           <div class="turn-control">
             <div>
-              <span class="eyebrow">CAMPAIGN STEP</span
+              <span class="eyebrow"
+                >CAMPAIGN STEP
+                <span class="phase-chip" title="The forecast you are living in"
+                  >PHASE <b id="phase-label">I</b></span
+                ></span
               ><strong id="cycle">STEP 001 <small>/ 024</small></strong>
             </div>
             <button class="primary" id="requisition">

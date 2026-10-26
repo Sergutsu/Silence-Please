@@ -17,7 +17,51 @@
   const pct = (value) => `${clamp(value * 100, 0, 100).toFixed(1)}%`;
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  /* The terminal's furniture — the step counter, the page heading, the sidebar
+     badges, the resource strip — never moves. Looking it up again on every
+     repaint meant a dozen document-wide selector walks per second, so the
+     paint path holds references instead. Anything that has been detached (a
+     dialog that closed, a card that was rebuilt) is quietly re-queried. */
+  const refs = new Map();
+  function ref(selector) {
+    let node = refs.get(selector);
+    if (!node || (node.nodeType === 1 && !node.isConnected)) {
+      node = document.querySelector(selector);
+      refs.set(selector, node);
+    }
+    return node;
+  }
+  function refAll(selector) {
+    const key = `all:${selector}`;
+    let nodes = refs.get(key);
+    if (!nodes || nodes.some((node) => !node.isConnected)) {
+      nodes = Array.from(document.querySelectorAll(selector));
+      refs.set(key, nodes);
+    }
+    return nodes;
+  }
+  function dropRefs() { refs.clear(); }
   const LORE = window.ASLore || { PROLOGUE: [], DIRECTIVES: [], INSPIRATIONS: [], GLOSSARY: [] };
+  /* src/live.js reconciles markup in place, so the numbers can move every frame
+     without rebuilding the terminal. The fallback only exists so the file still
+     runs if it is opened without the script tag. */
+  const Live = window.ASLive || {
+    patch: (root, html) => {
+      if (!root || root.__liveMarkup === html) return false;
+      root.innerHTML = html;
+      root.__liveMarkup = html;
+      return true;
+    },
+    text: (node, value) => {
+      if (!node || node.textContent === String(value)) return false;
+      node.textContent = value;
+      return true;
+    },
+    stats: { patches: 0, skipped: 0, text: 0, attributes: 0, replaced: 0, last: 0 },
+    resetStats: () => {},
+    paintEveryMs: () => 1000 / 12,
+    noteCost: () => {},
+  };
 
   const TITLES = {
     headquarters: ['Headquarters', 'The Calculus gave this frontier twelve cycles. The machines now spend every second of them.'],
@@ -34,8 +78,8 @@
   let view = 'headquarters';
   let lastFrame = performance.now();
   let saveClock = 0;
+  let lastPaint = 0;
   let renderClock = 0;
-  let signature = '';
   let lastStep = 1;
   let lastExplosions = 0;
   let heard = new Set();
@@ -194,8 +238,7 @@
     if (window.location.hash !== `#${next}`) {
       try { history.replaceState(null, '', `#${next}`); } catch (_) { /* file:// is fine */ }
     }
-    signature = '';
-    renderAll(true);
+    paintNow();
     const main = $('.workspace > main');
     if (main && typeof main.scrollIntoView === 'function') main.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
@@ -229,9 +272,8 @@
       return result;
     }
     if (result.state) s = result.state;
-    signature = '';
     if (!silent && result.msg) flash(result.msg);
-    renderAll(true);
+    paintNow();
     return result;
   }
   function stepChanged() {
@@ -249,8 +291,7 @@
         }
         if (s.step === 22) openPubBriefing();
       }
-      signature = '';
-    }
+      }
   }
   function achievementCheck() {
     (A.ACHIEVEMENTS || []).forEach((def) => {
@@ -294,56 +335,45 @@
       { key: 'unrest', label: '⚖ UNREST', value: Math.round(f.unrest), unit: '%', rate: f.mutiny ? 'MUTINY' : 'THE ADMIRALS', warn: f.unrest > 60 },
       { key: 'forecast', label: '✦ FORECAST', value: fmt(s.forecast), unit: '', rate: `×${A.forecastMult(s).toFixed(2)} OUTPUT`, warn: false },
     ];
-    const node = $('#resources');
+    const node = ref('#resources');
     if (!node) return;
     const html = rows.map((row, index) => `<div class="resource ${row.warn ? 'warn' : ''}" style="--i:${index}"><div class="label">${row.label}</div><div class="value">${row.value} <small>${row.unit}</small></div><div class="rate">${row.rate}</div></div>`).join('');
-    if (node.dataset.sig !== html) {
-      node.innerHTML = html;
-      node.dataset.sig = html;
-    }
+    Live.patch(node, html);
   }
   function renderStepTrack() {
-    const node = $('#step-track');
+    const node = ref('#step-track');
     if (!node) return;
     const html = A.STEP_DEFS.map((def) => {
       const state = def.n < s.step ? 'done' : def.n === s.step ? 'current' : 'locked';
       return `<button type="button" class="track-step ${state}" data-step="${def.n}" title="${esc(def.title)} — ${esc(def.unlock)}" aria-label="Step ${def.n}: ${esc(def.title)}"><span>${String(def.n).padStart(2, '0')}</span><i>${esc(def.title)}</i></button>`;
     }).join('');
-    if (node.dataset.sig !== html) {
-      node.innerHTML = html;
-      node.dataset.sig = html;
-    }
+    Live.patch(node, html);
   }
   function renderCycle() {
-    const cycle = $('#cycle');
-    if (cycle) cycle.innerHTML = `STEP ${String(s.step).padStart(3, '0')} <small>/ 024</small>`;
-    const phase = $('#phase-label');
-    if (phase) phase.textContent = roman(s.phase);
+    const cycle = ref('#cycle');
+    if (cycle) Live.patch(cycle, `STEP ${String(s.step).padStart(3, '0')} <small>/ 024</small>`);
+    Live.text(ref('#phase-label'), roman(s.phase));
     const titles = TITLES[view] || TITLES.headquarters;
-    const pageTitle = $('#page-title');
-    const pageSubtitle = $('#page-subtitle');
-    if (pageTitle) pageTitle.textContent = titles[0];
-    if (pageSubtitle) pageSubtitle.textContent = titles[1];
+    Live.text(ref('#page-title'), titles[0]);
+    Live.text(ref('#page-subtitle'), titles[1]);
   }
   function renderBadges() {
     const reckoning = s.step >= 24;
     document.body.classList.toggle('reckoning', reckoning);
-    $$('nav [data-view]').forEach((button) => {
+    refAll('nav [data-view]').forEach((button) => {
       const locked = reckoning && button.dataset.view !== 'headquarters';
-      button.disabled = locked;
+      if (button.disabled !== locked) button.disabled = locked;
       button.classList.toggle('locked', locked);
-      button.title = locked ? 'The reckoning is the only order at step 24.' : '';
+      const hint = locked ? 'The reckoning is the only order at step 24.' : '';
+      if (button.title !== hint) button.title = hint;
+      button.classList.toggle('active', button.dataset.view === view);
     });
-    const researchBadge = $('nav [data-view="research"] b');
-    if (researchBadge) researchBadge.textContent = String(s.research.filter((rec) => rec.state === 0).length);
-    const dispatchBadge = $('nav [data-view="dispatches"] b');
-    if (dispatchBadge) dispatchBadge.textContent = String(Math.min(99, s.hearings.length + Math.min(9, s.log.length)));
-    const signalBadge = $('#signal-secret-count');
-    if (signalBadge) signalBadge.textContent = `${s.signal.fragments}/3`;
-    $$('nav [data-view]').forEach((button) => button.classList.toggle('active', button.dataset.view === view));
+    Live.text(ref('nav [data-view="research"] b'), String(s.research.filter((rec) => rec.state === 0).length));
+    Live.text(ref('nav [data-view="dispatches"] b'), String(Math.min(99, s.hearings.length + Math.min(9, s.log.length))));
+    Live.text(ref('#signal-secret-count'), `${s.signal.fragments}/3`);
   }
   function renderMission() {
-    const node = $('#mission');
+    const node = ref('#mission');
     if (!node) return;
     if (view === 'white-hart') {
       node.hidden = true;
@@ -377,10 +407,7 @@
         <p>${esc(order.copy)}</p>
         <button class="primary" type="button" ${order.view ? `data-view="${order.view}"` : `data-action="${order.action}"${order.id ? ` data-id="${order.id}"` : ''}`}>${esc(order.cta)} →</button>
       </div>`;
-    if (node.dataset.sig !== html) {
-      node.innerHTML = html;
-      node.dataset.sig = html;
-    }
+    Live.patch(node, html);
   }
   function priority() {
     const info = A.stepInfo(s);
@@ -1017,19 +1044,19 @@
     </div>`;
   }
   function renderRoomTabs() {
-    const node = $('#room-tabs');
+    const node = ref('#room-tabs');
     if (!node) return;
     const open = Object.keys(s.pub.rooms);
     const perPage = 4;
     const pages = Math.max(1, Math.ceil(open.length / perPage));
     ui.roomPage = clamp(ui.roomPage, 0, pages - 1);
     const slice = open.slice(ui.roomPage * perPage, ui.roomPage * perPage + perPage);
-    node.innerHTML = slice.map((id) => {
+    Live.patch(node, slice.map((id) => {
       const room = roomDef(id);
       return `<button class="room-page-tab ${id === ui.room ? 'selected' : ''}" type="button" data-room="${id}" title="${esc(room.special)}">${esc(room.short || room.name)}</button>`;
-    }).join('') || '<span class="fine">No rooms open.</span>';
-    const prev = $('#room-prev');
-    const next = $('#room-next');
+    }).join('') || '<span class="fine">No rooms open.</span>');
+    const prev = ref('#room-prev');
+    const next = ref('#room-next');
     if (prev) prev.disabled = ui.roomPage <= 0;
     if (next) next.disabled = ui.roomPage >= pages - 1;
   }
@@ -1042,65 +1069,64 @@
       { done: s.pub.tier > 1, text: 'Improve the apparatus itself. Higher tiers absorb more.' },
     ];
     const done = orders.filter((order) => order.done).length;
-    const count = $('#pub-tour-count');
+    const count = ref('#pub-tour-count');
     if (count) count.textContent = `${done} / ${orders.length}`;
-    const list = $('#pub-tour-steps');
+    const list = ref('#pub-tour-steps');
     if (list) {
-      list.innerHTML = orders.map((order) => `<li class="${order.done ? 'done' : ''}"><span class="tour-tick">${order.done ? '✓' : '·'}</span>${esc(order.text)}</li>`).join('');
+      Live.patch(list, orders.map((order) => `<li class="${order.done ? 'done' : ''}"><span class="tour-tick">${order.done ? '✓' : '·'}</span>${esc(order.text)}</li>`).join(''));
     }
-    const eyebrow = $('#pub-tour-eyebrow');
-    if (eyebrow) eyebrow.innerHTML = `${done === orders.length ? 'THE ANNEX IS RUNNING ITSELF' : 'THE ANNEX ORDERS'} <span class="heading-rule"></span>`;
-    const title = $('#pub-tour-title');
+    const eyebrow = ref('#pub-tour-eyebrow');
+    if (eyebrow) {
+      Live.patch(eyebrow, `${done === orders.length ? 'THE ANNEX IS RUNNING ITSELF' : 'THE ANNEX ORDERS'} <span class="heading-rule"></span>`);
+    }
+    const title = ref('#pub-tour-title');
     if (title) title.textContent = done === orders.length ? 'Nothing needs you.' : 'How an annex is run.';
   }
   function renderAnnexChecks() {
     const cost = { ip: Math.ceil(30 * Math.pow(1.4, s.totals.checks)), sp: Math.ceil(20 * Math.pow(1.3, s.totals.checks)) };
-    const container = $('#annex-projects');
+    const container = ref('#annex-projects');
     if (container) {
-      container.innerHTML = A.PROJECTS.map((project, index) => {
+      Live.patch(container, A.PROJECTS.map((project, index) => {
         const rec = s.research[index];
         const status = rec.state === 3 ? 'CERTIFIED' : rec.state === 2 ? 'ON THE BENCH' : rec.state === 1 ? 'BEING DRAWN' : 'NOT AUTHORISED';
         return `<article class="annex-project"><div class="annex-project-status">${status}</div><h3>${project.icon} ${esc(project.name)}</h3><p>${esc(project.flaw)}</p><span class="fine">${rec.tests}/2 field tests · ${esc(project.bonus)}</span></article>`;
-      }).join('');
+      }).join(''));
     }
-    const running = $('#annex-running');
+    const running = ref('#annex-running');
     if (running) {
       running.hidden = !s.pub.checking;
       if (s.pub.checking) {
-        const name = $('#annex-trial-name');
+        const name = ref('#annex-trial-name');
         if (name) name.textContent = `PROTOTYPE CHECK ${s.pub.checks}`;
         const left = Math.max(0, 12 - s.pub.checkTimer);
-        const seconds = $('#annex-seconds');
+        const seconds = ref('#annex-seconds');
         if (seconds) seconds.textContent = `${left.toFixed(1)} / 12 seconds`;
-        const bar = $('#annex-progress');
+        const bar = ref('#annex-progress');
         if (bar) bar.value = clamp((s.pub.checkTimer / 12) * 100, 0, 100);
-        const pint = $('#annex-pint');
+        const pint = ref('#annex-pint');
         if (pint) pint.textContent = 'control pint poured and witnessed';
       }
     }
-    const trial = $('#annex-stage-trial');
+    const trial = ref('#annex-stage-trial');
     if (trial) {
       trial.hidden = !s.pub.checking;
-      const label = $('#annex-stage-label');
+      const label = ref('#annex-stage-label');
       if (label) label.textContent = s.pub.checking ? `CHECK ${s.pub.checks} · ${Math.max(0, 12 - s.pub.checkTimer).toFixed(1)}s` : '';
     }
-    const link = $('#annex-link-state');
+    const link = ref('#annex-link-state');
     if (link) link.textContent = `A check costs ${fmt(cost.ip)} IP and ${fmt(cost.sp)} SP · ${s.totals.checks} filed · the landlord witnesses everything.`;
-    const message = $('#annex-message');
+    const message = ref('#annex-message');
     if (message) {
-      message.innerHTML = s.pub.checking
+      Live.patch(message, s.pub.checking
         ? 'The apparatus is taking readings. Nobody is to use the fruit machine.'
-        : `<button class="primary" type="button" data-action="pub-check" ${s.ip < cost.ip || s.sp < cost.sp || s.step < 22 ? 'disabled' : ''}>FILE A PROTOTYPE CHECK · ${fmt(cost.ip)} IP / ${fmt(cost.sp)} SP</button>`;
+        : `<button class="primary" type="button" data-action="pub-check" ${s.ip < cost.ip || s.sp < cost.sp || s.step < 22 ? 'disabled' : ''}>FILE A PROTOTYPE CHECK · ${fmt(cost.ip)} IP / ${fmt(cost.sp)} SP</button>`);
     }
   }
   function renderPub(force = false) {
     if (!s) return;
     const d = A.derive(s);
     const pub = s.pub;
-    const setText = (selector, value) => {
-      const node = $(selector);
-      if (node && node.textContent !== String(value)) node.textContent = value;
-    };
+    const setText = (selector, value) => Live.text(ref(selector), value);
     setText('#pub-pints', fmt(s.pints));
     setText('#pub-rate-pints', `+${fmtRate(d.pintsPerSec)} / sec`);
     setText('#pub-patrons', Math.round(d.patrons));
@@ -1118,18 +1144,18 @@
     const noisePct = clamp((pub.noise / Math.max(1, d.capacity)) * 100, 0, 100);
     setText('#energy-readout', Math.round(pub.noise));
     setText('#energy-capacity', Math.round(d.capacity));
-    const percent = $('#energy-percent');
+    const percent = ref('#energy-percent');
     if (percent) percent.innerHTML = `${Math.floor(noisePct)}<span>%</span>`;
-    const fill = $('#energy-fill');
+    const fill = ref('#energy-fill');
     if (fill) fill.style.width = `${noisePct}%`;
-    const flow = $('#energy-flow');
+    const flow = ref('#energy-flow');
     if (flow) {
       const net = d.noisePerSec - d.absorption * 0.8;
       flow.textContent = `${net >= 0 ? '+' : '−'}${fmtRate(Math.abs(net))} / sec · absorbing ${fmtRate(d.absorption)}`;
     }
     const track = $('.energy-track');
     if (track) track.setAttribute('aria-valuenow', String(Math.floor(noisePct)));
-    const meter = $('#energy-card');
+    const meter = ref('#energy-card');
     if (meter) {
       meter.classList.remove('energy-70', 'energy-85', 'energy-95');
       if (noisePct >= 95) meter.classList.add('energy-95');
@@ -1137,7 +1163,7 @@
       else if (noisePct >= 70) meter.classList.add('energy-70');
     }
     document.body.classList.toggle('energy-alert', noisePct >= 85);
-    const status = $('#energy-status');
+    const status = ref('#energy-status');
     if (status) {
       const copy = noisePct >= 95 ? ['⚠', 'TICK. TICK. TICK. VENT SOMETHING.']
         : noisePct >= 85 ? ['⚠', 'Smoke from the tubes. Someone asks if it is normal.']
@@ -1148,25 +1174,25 @@
     }
     setText('#silencer-tier', `TIER ${roman(pub.tier)}`);
     setText('#silencer-name', `The ${d.tier.name}`);
-    const absorption = $('#absorption-value');
+    const absorption = ref('#absorption-value');
     if (absorption) absorption.innerHTML = `${fmtRate(d.absorption)} <small>dB / sec</small>`;
-    const ventRate = $('#vent-rate-value');
+    const ventRate = ref('#vent-rate-value');
     if (ventRate) ventRate.innerHTML = `${fmtRate(pub.noise * 0.75 * d.ventPower)} <small>SE on vent</small>`;
     setText('#home-room', roomDef('general').name.toUpperCase());
     setText('#active-zones', `${Object.keys(pub.rooms).length} ACTIVE`);
     setText('#meter-tier-cap', `${fmt(d.capacity)} dB`);
     setText('#explosion-count', pub.explosions);
-    const ventButton = $('#vent-button');
+    const ventButton = ref('#vent-button');
     if (ventButton) ventButton.disabled = pub.noise < 1;
-    const dockVent = $('#dock-vent-button');
+    const dockVent = ref('#dock-vent-button');
     if (dockVent) dockVent.disabled = pub.noise < 1;
-    const dockCopy = $('#dock-vent-copy');
+    const dockCopy = ref('#dock-vent-copy');
     if (dockCopy) dockCopy.textContent = `VENT ${Math.round(pub.noise)} dB`;
 
     /* Standing and the press. */
     const standing = clamp(pub.reputation, 0, 100);
     setText('#reputation-value', Math.round(standing));
-    const repFill = $('#reputation-fill');
+    const repFill = ref('#reputation-fill');
     if (repFill) {
       repFill.style.width = `${standing}%`;
       repFill.style.background = standing < 25 ? 'linear-gradient(90deg,#a63d35,#e06149)'
@@ -1185,25 +1211,19 @@
     setText('#season-label', d.weather.name);
     setText('#weather-label', d.weather.name);
     setText('#door-status', open ? 'DOOR OPEN' : 'DOOR BARRED');
-    const realm = $('#pub-realm');
+    const realm = ref('#pub-realm');
     if (realm) realm.classList.toggle('not-yet-open', !open);
-    const serve = $('#serve-button');
+    const serve = ref('#serve-button');
     if (serve) serve.title = open ? 'Pull a pint by hand' : 'The landlord is not serving until step 22.';
-    const serveLabel = $('#serve-button-label');
+    const serveLabel = ref('#serve-button-label');
     if (serveLabel) serveLabel.textContent = open ? 'PULL A PINT' : 'NOT SERVING YET';
 
-    const deck = $('#pub-floor');
-    if (deck) {
-      const html = pubFloor();
-      if (deck.dataset.sig !== html) {
-        deck.innerHTML = html;
-        deck.dataset.sig = html;
-      }
-    }
+    const deck = ref('#pub-floor');
+    if (deck) Live.patch(deck, pubFloor());
     renderRoomTabs();
     renderTourCard();
     renderAnnexChecks();
-    const caption = $('#scene-caption');
+    const caption = ref('#scene-caption');
     if (caption) {
       const line = !open ? 'The White Hart does not open until step 22. The landlord keeps the lamps low and the Silencer unplugged.'
         : pub.noise > d.capacity * 0.85 ? 'The apparatus has begun to hum in a key nobody likes. The landlord is watching the ceiling.'
@@ -1401,8 +1421,7 @@
         heard = new Set();
         lastStep = s.step;
         closeBriefing();
-        signature = '';
-        setView('headquarters');
+            setView('headquarters');
         chime();
         toast(`PHASE ${roman(s.phase)} BEGINS`, result.msg, 9000);
         return undefined;
@@ -1493,8 +1512,7 @@
       const system = target.closest('[data-system]');
       if (system) {
         ui.mapSelection = Number(system.dataset.system);
-        signature = '';
-        renderAll(true);
+        paintNow();
         return;
       }
       const buy = target.closest('[data-buy]');
@@ -1553,7 +1571,7 @@
           if (result.ok) {
             toast(hit.title, hit.line, 9000);
             beep(680, 0.12, 'sine', 0.03);
-            renderAll(true);
+            paintNow();
           }
         }
       }
@@ -1561,42 +1579,57 @@
 
     window.addEventListener('beforeunload', () => { if (s) A.save(s); });
     document.addEventListener('visibilitychange', () => { if (s && document.hidden) A.save(s); });
-    window.addEventListener('resize', () => { signature = ''; renderAll(true); });
+    window.addEventListener('resize', () => paintNow());
   }
 
   /* ------------------------------------------------------------- rendering */
-  function renderCampaign(force = false) {
-    const node = $('#view');
+  function renderCampaign() {
+    const node = ref('#view');
     if (!node) return;
-    const build = VIEWS[view] || VIEWS.headquarters;
-    const sig = `${view}|${s.step}|${Math.round(Math.log10(1 + s.ip) * 6)}|${Math.round(Math.log10(1 + s.sp) * 6)}|${Math.round(Math.log10(1 + s.pc) * 6)}|${Math.floor(s.fleet.ships)}|${Math.floor(s.fleet.enemy)}|${Math.round(s.fleet.reliability)}|${Math.round(s.fleet.chaos)}|${Math.round(s.fleet.capital)}|${Math.round(s.fleet.unrest)}|${s.lines}|${s.research.map((rec) => rec.state + (rec.tests || 0)).join('')}|${s.hearings.length}|${s.signal.fragments}${s.signal.choice}|${Object.keys(s.pub.rooms).length}|${s.pub.tier}|${s.policies.autopilot ? 1 : 0}|${s.policies.autoResearch ? 1 : 0}|${s.policies.autoHearing}|${ui.mapSelection}|${s.forecast}|${s.up && Object.keys(s.up).length}|${s.achievements.length}|${(s.log || []).length}|${s.fleet.field ? 1 : 0}${s.fleet.analyzer}|${s.fleet.focus}|${s.fleet.doctrine}|${s.event.id}|${Math.floor(s.up ? Object.values(s.up).reduce((a, b) => a + b, 0) : 0)}|${s.prestiges}|${s.fleet.ceded ? 1 : 0}`;
-    if (!force && sig === signature) return;
-    signature = sig;
+    const html = (VIEWS[view] || VIEWS.headquarters)();
+    /* The markup is still written as a string, but it is reconciled into the
+       live tree rather than assigned, so a tick that only moves a number
+       leaves every element (and every running animation) exactly where it
+       was. Focus inside the view is only restored in the rare case that the
+       element itself had to be replaced. */
     const active = document.activeElement;
-    const focus = active && node.contains(active) ? { action: active.dataset.action, id: active.dataset.id, buy: active.dataset.buy } : null;
-    node.innerHTML = build();
-    if (focus && (focus.action || focus.buy)) {
-      const selector = focus.buy
-        ? `[data-buy="${focus.buy}"]`
-        : `[data-action="${focus.action}"]${focus.id !== undefined ? `[data-id="${focus.id}"]` : ''}`;
+    const focus = active && node.contains(active) ? active : null;
+    const hinted = focus && (focus.dataset.action || focus.dataset.buy)
+      ? {
+        buy: focus.dataset.buy,
+        action: focus.dataset.action,
+        id: focus.dataset.id,
+      }
+      : null;
+    Live.patch(node, html);
+    if (hinted && !document.contains(focus)) {
+      const selector = hinted.buy
+        ? `[data-buy="${hinted.buy}"]`
+        : `[data-action="${hinted.action}"]${hinted.id !== undefined ? `[data-id="${hinted.id}"]` : ''}`;
       const again = node.querySelector(selector);
       if (again) again.focus({ preventScroll: true });
     }
   }
-  function renderAll(force = false) {
+  function renderAll() {
     if (!s) return;
     renderCycle();
     renderResources();
     renderStepTrack();
     renderBadges();
     renderMission();
-    if (view === 'white-hart') renderPub(force);
-    else renderCampaign(force);
-    const saveLabel = $('#save-status');
-    if (saveLabel) saveLabel.textContent = 'LOCAL ARCHIVE ACTIVE';
+    if (view === 'white-hart') renderPub();
+    else renderCampaign();
+    const saveLabel = ref('#save-status');
+    if (saveLabel) Live.text(saveLabel, 'LOCAL ARCHIVE ACTIVE');
   }
 
   /* ------------------------------------------------------------------ loop */
+  /* Three different clocks, deliberately:
+       - the engine ticks on every frame, so income and combat stay smooth;
+       - the interface repaints at a human rate (12 Hz by default, backing off
+         if a patch costs too much), because no one can read a number changing
+         sixty times a second and every repaint is work the player can feel;
+       - the archive is written every five seconds. */
   function frame(now) {
     window.requestAnimationFrame(frame);
     if (!s) return;
@@ -1618,12 +1651,22 @@
     achievementCheck();
     explosionCheck();
     momentWatch();
-    renderAll(false);
+    if (!lastPaint || now - lastPaint >= Live.paintEveryMs()) {
+      lastPaint = now;
+      renderAll();
+      Live.noteCost(Live.stats.last || 0);
+    }
     saveClock += raw;
     if (saveClock >= 5) {
       saveClock = 0;
       A.save(s);
     }
+  }
+  /* Anything the player did by hand paints immediately, so a click never waits
+     for the next tick of the interface clock. */
+  function paintNow() {
+    renderAll();
+    lastPaint = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   }
 
   /* ------------------------------------------------------------------ boot */
@@ -1641,7 +1684,7 @@
     if (soundButton) soundButton.classList.toggle('active', soundOn);
     if (soundIcon) soundIcon.textContent = soundOn ? '♫' : '◖';
     bind();
-    renderAll(true);
+    renderAll();
     window.requestAnimationFrame((time) => {
       lastFrame = time;
       window.requestAnimationFrame(frame);
@@ -1661,7 +1704,7 @@
   window.ASIdleUI = {
     get state() { return s; },
     get view() { return view; },
-    render: () => renderAll(true),
+    render: () => paintNow(),
     renderPub,
     setView,
     handleAction,

@@ -3298,3 +3298,46 @@ body.modal-open { overflow: hidden; }
   .bridge-tools button { flex: 1 1 100%; }
   .battle-lines { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ------------------------------------------------------- the live readouts */
+/* Numbers that move every frame must not move the furniture around them, or
+   the terminal looks like it is shivering. Tabular figures keep every digit the
+   same width, so a value can tick from 999 to 1000 without nudging its
+   neighbours. */
+.resource .value,
+.resource .rate,
+.battle-stats strong,
+.battle-lines strong,
+.meter-row strong,
+.shop-item .item-cost,
+.shop-item .item-sub,
+.console-meter strong,
+.goal-row strong,
+.forecast-stats strong,
+.resource-bar strong,
+.resource-bar .resource-rate,
+.floor-counter-label,
+.floor-murmur,
+#cycle,
+#save-status {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.resource .value { min-width: 0; }
+/* The phase chip sits inside the campaign-step label: it is the one piece of
+   the heading that changes when a forecast is recalculated. */
+.phase-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border: 1px solid rgba(140, 231, 239, .28);
+  border-radius: 4px;
+  background: rgba(96, 182, 196, .1);
+  color: #9fe6ee;
+  font-size: 8px;
+  letter-spacing: .12em;
+  vertical-align: 1px;
+}
+.phase-chip b { color: #e6fbff; font-weight: 700; font-variant-numeric: tabular-nums; }

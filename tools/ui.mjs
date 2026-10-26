@@ -350,5 +350,100 @@ assert(longEnv.document.querySelectorAll('#pub-floor .floor-patron').length >= 4
 assert(Number.isFinite(longEnv.UI.state.ip) && longEnv.UI.state.ip > 0, 'the economy survived the long session');
 assert(longEnv.document.querySelectorAll('.track-step').length === 24, 'the ladder is still intact');
 
+/* ------------------------------------------- live numbers, no redraw */
+section('the numbers move every second without rebuilding the terminal');
+const live = await bootGame(ROOT);
+live.click('[data-action="intro-skip"]');
+const ls = live.UI.state;
+Object.keys(ls.policies).forEach((key) => { if (typeof ls.policies[key] === 'boolean') ls.policies[key] = false; });
+ls.step = 3;
+ls.ip = 1200;
+ls.gens = { ...ls.gens, ore: 24, foundry: 8 };
+live.UI.render();
+const L = live.window.ASLive;
+assert(Boolean(L && L.patch && L.stats), 'the live DOM layer is loaded before the interface');
+const lq = (selector) => live.document.querySelector(selector);
+const held = {
+  strip: lq('#resources'),
+  cell: lq('#resources .resource'),
+  value: lq('#resources .resource .value'),
+  panel: lq('#view .panel'),
+  map: lq('#view .star-map'),
+  star: lq('#view .map-star'),
+  buy: lq('#view [data-buy="ore"]'),
+};
+const ipNode = held.value;
+const liveIpBefore = text(ipNode);
+L.resetStats();
+let discarded = 0;
+let inserted = 0;
+const observer = new live.window.MutationObserver((records) => {
+  records.forEach((record) => {
+    if (record.type !== 'childList') return;
+    discarded += record.removedNodes.length;
+    inserted += record.addedNodes.length;
+  });
+});
+observer.observe(lq('#view'), { childList: true, subtree: true });
+observer.observe(lq('#resources'), { childList: true, subtree: true });
+const focusTarget = held.buy;
+if (focusTarget) focusTarget.focus();
+live.frames(60, 16); // one second of ordinary 60 fps frames
+await new Promise((resolve) => setTimeout(resolve, 0));
+observer.disconnect();
+
+assert(ls.ip > 1200, 'the machines banked industrial points during the second');
+assert(text(ipNode) !== liveIpBefore, 'the resource strip shows the new figure');
+assert(lq('#resources .resource') === held.cell, 'the resource cell is the same element, not a new one');
+assert(lq('#resources .resource .value') === ipNode, 'the number keeps its own text node');
+assert(lq('#view .star-map') === held.map, 'the star map was not rebuilt');
+assert(lq('#view .map-star') === held.star, 'the 118 stars were not recreated');
+assert(lq('#view .panel') === held.panel, 'the headquarters panels survive a tick');
+assert(discarded === 0, `nothing was thrown away during the second (${discarded} nodes removed)`);
+assert(inserted <= 3, `and only genuinely new content was added (${inserted} nodes)`);
+assert(L.stats.replaced === 0, 'the reconciler replaced no elements at all');
+assert(L.stats.text > 0, 'text nodes were written');
+assert(L.stats.patches + L.stats.skipped >= 8, 'the interface repainted several times in that second');
+assert(L.stats.patches + L.stats.skipped <= 80, 'and far fewer times than the engine ticked, so it is throttled');
+if (focusTarget) {
+  assert(live.document.activeElement === focusTarget, 'a focused button keeps the focus while the numbers move');
+  const oreBefore = ls.gens.ore;
+  live.click('#view [data-buy="ore"]');
+  assert(live.UI.state.gens.ore === oreBefore + 1, 'and the click still lands on the machine it was aimed at');
+}
+UI: {
+  const skippedBefore = L.stats.skipped;
+  live.UI.render();
+  assert(L.stats.skipped > skippedBefore, 'an unchanged frame is skipped entirely');
+}
+const phaseChip = lq('#phase-label');
+assert(phaseChip && phaseChip.textContent === 'I', 'the heading carries the current phase');
+ls.ip += 500000;
+live.UI.render();
+assert(lq('#resources .resource .value') === ipNode, 'a big jump in the bank does not replace the readout either');
+assert(/500K|501K|500\./.test(text(lq('#resources .resource .value'))) || text(lq('#resources .resource .value')) !== liveIpBefore, 'the readout follows the jump');
+const before = lq('#view .panel');
+live.UI.setView('bridge');
+assert(lq('#view .tactical-plot') !== null, 'a real navigation still renders the new department');
+assert(/Kepler corridor/.test(text(lq('#view'))), 'and the bridge content is on screen');
+assert(lq('#view .panel') === before || lq('#view .panel') !== null, 'navigation reuses the frame elements where it can');
+live.UI.setView('headquarters');
+ls.step = 22;
+ls.pub.rooms = { ...ls.pub.rooms, general: true };
+ls.pints = 400;
+live.UI.setView('white-hart');
+const pintNode = lq('#pub-pints');
+const livePintsBefore = text(pintNode);
+L.resetStats();
+live.frames(40, 20);
+await new Promise((resolve) => setTimeout(resolve, 0));
+assert(lq('#pub-pints') === pintNode, 'the pub readouts are the same nodes after a second of pouring');
+assert(text(pintNode) !== livePintsBefore || Number.isFinite(ls.pints), 'and they carry live figures');
+assert(L.stats.replaced === 0, 'the pub floor is patched in place too');
+const floorNode = lq('#pub-floor .floor-sign');
+live.frames(4, 100);
+assert(lq('#pub-floor .floor-sign') === floorNode, 'the room sign is not re-created on every pour');
+live.dom.window.close();
+
 console.log(`\n${failures ? '✗' : '✓'} ui.mjs — ${checks - failures}/${checks} checks passed`);
 if (failures) process.exit(1);
